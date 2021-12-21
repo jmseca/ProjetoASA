@@ -68,19 +68,30 @@ void handleAddToElementArray(elementArray* eArr, int value){
   char removed = removeIfNecessary(eArr,&elem,ind);
   if (!removed){
     shiftRightElementArray(eArr,ind);  
-    eArr->currSize++;
   }
   addToElementArray(eArr,elem,ind);
 
 }
 
 char removeIfNecessary(elementArray* eArr, element* elem, int ind){
+  element indElement = eArr->arr[ind];
+  char removing=0;
   if (!ind){
     return 0;
   }
-  element indElement = eArr->arr[ind];
   elem->step = eArr->arr[ind-1].step; 
-  return indElement.step < elem->step; 
+  
+  if (indElement.value==elem->value &&
+  indElement.step == elem->step){
+    elem->reps = indElement.reps +1;
+    removing=1;
+  }
+  if (removing && indElement.step < elem->step){ // will remove
+    eArr->currSize--;
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 void shiftRightElementArray(elementArray* eArr,int ind){
@@ -92,5 +103,18 @@ void shiftRightElementArray(elementArray* eArr,int ind){
 
 void addToElementArray(elementArray* eArr, element elem, int ind){
   eArr->arr[ind] = elem;
+  eArr->currSize++;
+}
+
+int numberOfMaxSizeSubseq(elementArray* eArr, int max){
+  int ind = eArr->currSize-1;
+  int rep = 0;
+  element elem = eArr->arr[ind];
+  while ( elem.step == (max-1)){
+    rep += elem.reps;
+    ind--;
+    elem = eArr->arr[ind];
+  }
+
 }
 
