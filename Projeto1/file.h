@@ -7,12 +7,6 @@ typedef struct {
    int* arr;
 } vetor;
 
-typedef struct {
-  int value;
-  short reps;
-  short step;
-} element;
-
 vetor* initVetor();
 
 void addToVetor(vetor* vet,int new);
@@ -36,6 +30,7 @@ typedef struct {
 typedef struct {
   element* arr;
   int currSize;
+  int size;
 } elementArray;
 
 element initNullElement();
@@ -46,9 +41,11 @@ int elementComparator(element e1, element e2);
 
 int elementBinarySearch(elementArray* array, int s, int e, element find);
 
-char removeIfNecessary(elementArray* eArr, element* elem, int ind);
+int removeIfNecessary(elementArray* eArr, element* elem, int ind);
 
 void shiftRightElementArray(elementArray* eArr,int ind);
+
+void shiftLefElementArray(elementArray* eArr, int ind, int jump);
 
 void handleAddToElementArray(elementArray* eArr, int value);
 
@@ -56,11 +53,21 @@ void addToElementArray(elementArray* eArr, element elem, int ind);
 
 int getElementArrayMaxValue(elementArray* eArr);
 
+void setElementReps(elementArray* eArr,int ind, element* elem);
+
+int numberOfMaxSizeSubseq(elementArray* eArr, int max);
+
+void printElementArray(elementArray* eArr);
+
 //Main
 
 void parseInput(vetor* vet, char* buffer);
 
 vetor* getVetorFromInput();
+
+void runExercise1();
+
+void exercise1(vetor* vet);
 
 
 

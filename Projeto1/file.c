@@ -70,74 +70,148 @@ element newElementWithValue(int val){
   return new;
 }
 
-elementArray* initElementArray(int size){
+elementArray* initElementArray(int siz){
   elementArray* eArr = (elementArray*) malloc(sizeof(elementArray));
-  element* newArr = (element*) malloc(sizeof(element)*size);
+  element* newArr = (element*) malloc(sizeof(element)*siz);
   int i;
-  for (i=0; i<size;i++){
+  for (i=0; i<siz;i++){
     newArr[i] = initNullElement();
   }
   eArr->arr = newArr;
   eArr->currSize=0;
+  eArr->size = siz;
   return eArr;
 } 
 
 
 int elementComparator(element e1, element e2){
   int out = e1.value - e2.value;
-  return !out ? -1 : out;
+  return !out ? 1 : out;
 }
 
 int getElementArrayMaxValue(elementArray* eArr){
-  return eArr->arr[(eArr->currSize)-1].value;
+  return eArr->arr[(eArr->currSize)-1].step +1;
 }
 
 
 int elementBinarySearch(elementArray* array, int s, int e, element find) {
+  //printf("s->%d,e->%d,value->%d\n",s,e,find.value);
   int m,comp;
   if ( (e==-1) || find.value > array->arr[e].value){
     return e+1;
   }
   m = (s + e)/2;
   comp = elementComparator(array->arr[m],find);
+  //printf("comp->%d\n",comp);
   if (!comp)
     return m;
   else if (comp<0)  
-    return binarySearch(array, m+1, e, find);
+    return elementBinarySearch(array, m+1, e, find);
   else
-    return binarySearch(array, s, m-1, find);
+    return elementBinarySearch(array, s, m-1, find);
 }
+
+
+void printElementArray(elementArray* eArr){
+  printf("ArraySize=%d\n",eArr->currSize);
+  int i = 0;
+  int size = eArr->currSize;
+  for (i=0;i<size;i++){
+    printf("Value=%d\tReps=%d\tSteps=%d\n",eArr->arr[i].value,eArr->arr[i].reps,eArr->arr[i].step);
+    printf("|\n");
+  }
+}
+
 
 void handleAddToElementArray(elementArray* eArr, int value){
   element elem = newElementWithValue(value);
   int ind = elementBinarySearch(eArr,0,eArr->currSize-1,elem);
-  char removed = removeIfNecessary(eArr,&elem,ind);
+  int removed = removeIfNecessary(eArr,&elem,ind);
+  printf("Removing -> %d\n",removed);
   if (!removed){
-    shiftRightElementArray(eArr,ind);  
-    eArr->currSize++;
+    shiftRightElementArray(eArr,ind);
   }
   addToElementArray(eArr,elem,ind);
-
+  if (removed>1){
+    shiftLefElementArray(eArr,ind,removed-1);
+  }
 }
 
-char removeIfNecessary(elementArray* eArr, element* elem, int ind){
+void printElement(element elem){
+  printf("Value=%d\tReps=%d\tSteps=%d\n",elem.value,elem.reps,elem.step);
+}
+
+void setElementReps(elementArray* eArr,int ind, element* elem){
   if (!ind){
-    return 0;
+    elem->reps=1;
+  } else {
+    element indElement = eArr->arr[ind-1];
+    while (((indElement.step + 1) == elem->step)){
+      elem->reps+=indElement.reps;
+      ind--;
+      if (ind-1 <0){
+        break;
+      }
+      indElement = eArr->arr[ind-1];
+    }
   }
-  element indElement = eArr->arr[ind];
-  elem->step = eArr->arr[ind-1].step; 
-  return indElement.step < elem->step; 
+}
+
+
+int removeIfNecessary(elementArray* eArr, element* elem, int ind){
+  int removing=0;
+  int maxInd = eArr->size -1;
+  //printElement(*elem);
+  elem->step = !ind ? 0 : eArr->arr[ind-1].step +1; 
+  
+  setElementReps(eArr,ind,elem);
+  
+  if (ind != eArr->currSize && eArr->currSize!=0){
+    while ( (eArr->arr[ind].step < elem->step) && (ind < eArr->currSize)){
+      removing++;
+      ind++;
+    }
+    eArr->currSize -= removing;
+    return removing;
+  } else {
+    return 1;
+  }
 }
 
 void shiftRightElementArray(elementArray* eArr,int ind){
   int size = eArr->currSize;
   while (size>ind){
     eArr->arr[size] = eArr->arr[size-1];
+    size--;
+  }
+}
+
+void shiftLefElementArray(elementArray* eArr, int ind, int jump){
+  int initInd = eArr->currSize-1;
+  while ((initInd-jump) > ind){
+    eArr->arr[initInd-jump] = eArr->arr[initInd];
+    initInd--;
   }
 }
 
 void addToElementArray(elementArray* eArr, element elem, int ind){
   eArr->arr[ind] = elem;
+  eArr->currSize++;
+}
+
+int numberOfMaxSizeSubseq(elementArray* eArr, int max){
+  int ind = eArr->currSize-1;
+  int out=0;
+  element indElement = eArr->arr[ind];
+  while (indElement.step+1 == max){
+    out += indElement.reps;
+    ind--;
+    if (ind<0){
+      break;
+    }
+    indElement = eArr->arr[ind];
+  }
+  return out;
 }
 
 
@@ -181,14 +255,17 @@ void runExercise1(){
 
 void exercise1(vetor* vet){
   int size = vet->currSize;
-  int ind=0,max=0,hMany;
+  int max=0,hMany,ind;
   elementArray* elementArr = initElementArray(size);
-  while (size-max>=ind){
+  printVetor(vet);
+  for (ind=0;ind<size;ind++){
     handleAddToElementArray(elementArr,getVetorValue(vet,ind));
-    max = getElementArrayMaxValue(elementArr);
+    printElementArray(elementArr);
+    printf("DONE\n");
   }
+  max = getElementArrayMaxValue(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
-  pritnf("%d %d\n",max,hMany);
+  printf("%d %d\n",max,hMany);
 }
 
 int main(){
@@ -200,9 +277,5 @@ int main(){
   } else {
     printf("Hello\n");
   }
-
-   vetor* vet = getVetorFromInput();
-   printVetor(vet);
-
-   return 0;
+  return 0;
 }

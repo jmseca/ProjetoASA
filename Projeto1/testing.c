@@ -13,6 +13,7 @@ typedef struct {
   int currSize;
 } elementArray;
 
+/*
 element initNullElement(){
   element new;
   new.value = INFINITY;
@@ -73,39 +74,6 @@ void handleAddToElementArray(elementArray* eArr, int value){
 
 }
 
-char removeIfNecessary(elementArray* eArr, element* elem, int ind){
-  element indElement = eArr->arr[ind];
-  char removing=0;
-  if (!ind){
-    return 0;
-  }
-  elem->step = eArr->arr[ind-1].step; 
-  
-  if (indElement.value==elem->value &&
-  indElement.step == elem->step){
-    elem->reps = indElement.reps +1;
-    removing=1;
-  }
-  if (removing && indElement.step < elem->step){ // will remove
-    eArr->currSize--;
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-void shiftRightElementArray(elementArray* eArr,int ind){
-  int size = eArr->currSize;
-  while (size>ind){
-    eArr->arr[size] = eArr->arr[size-1];
-  }
-}
-
-void addToElementArray(elementArray* eArr, element elem, int ind){
-  eArr->arr[ind] = elem;
-  eArr->currSize++;
-}
-
 int numberOfMaxSizeSubseq(elementArray* eArr, int max){
   int ind = eArr->currSize-1;
   int rep = 0;
@@ -115,6 +83,34 @@ int numberOfMaxSizeSubseq(elementArray* eArr, int max){
     ind--;
     elem = eArr->arr[ind];
   }
+  return rep;
+}
+*/
 
+
+int binarySearch(int* array, int s, int e, int find) {
+  int m,comp;
+  if ( (e==-1) || find > array[e]){
+    return e+1;
+  }
+  m = (s + e)/2;
+  comp = array[m]-find;
+  if (!comp)
+    return m;
+  else if (comp<0)  
+    return binarySearch(array, m+1, e, find);
+  else
+    return binarySearch(array, s, m-1, find);
 }
 
+
+int main(){
+
+  int arr[] = {3,4};
+  int find = 1;
+
+  printf("%d\n",binarySearch(arr,0,1,1));
+
+
+  return 0;
+}
