@@ -1,16 +1,74 @@
-#include "file.h"
+/*#include "file.h"*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <time.h>
+/*#include <time.h>*/
 #include <string.h>
 
 
 #define VETOR_BASE_SIZE 2
 #define BUFFER_SIZE 128
 
+/*Structs*/
+typedef struct {
+   int size;
+   int currSize;
+   int* arr;
+} vetor;
 
+typedef struct {
+  int value;
+  int reps;
+  int step;
+} element;
 
+typedef struct {
+  element* arr;
+  int currSize;
+  int size;
+} elementArray;
+
+/*.h stuff*/
+
+element initNullElement();
+
+elementArray* initElementArray(int size);
+
+int elementComparator(element e1, element e2);
+
+int elementBinarySearch(elementArray* array, int s, int e, element find);
+
+int removeIfNecessary(elementArray* eArr, element* elem, int ind);
+
+void shiftRightElementArray(elementArray* eArr,int ind);
+
+void shiftLefElementArray(elementArray* eArr, int ind, int jump);
+
+void handleAddToElementArray(elementArray* eArr, int value);
+
+void addToElementArray(elementArray* eArr, element elem, int ind);
+
+int getElementArrayMaxValue(elementArray* eArr);
+
+void setElementReps(elementArray* eArr,int ind, element* elem);
+
+int numberOfMaxSizeSubseq(elementArray* eArr, int max);
+
+void printElementArray(elementArray* eArr);
+
+/* Main */
+
+int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind);
+
+int possibleCutNumber(char** prev, int* prevSize, char* buffer);
+
+void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize);
+
+vetor* getVetorFromInput();
+
+short runExercise1();
+
+void exercise1(vetor* vet);
 
 /* VETOR */
 
@@ -290,16 +348,11 @@ void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize){
 }
 
 short runExercise1(){
-  clock_t c1 = clock();
   vetor* vet = getVetorFromInput();
   if (vet==NULL){
     return -1;
   }
-  clock_t c2 = clock();
-  /*printf("Colock time  =%ld\n",c2-c1);*/
   exercise1(vet);
-  clock_t c3 = clock();
-  /*printf("Colock time finished =%ld\n",c3-c2);*/
   return 0;
 
 }
