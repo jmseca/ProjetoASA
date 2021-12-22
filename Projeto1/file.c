@@ -127,7 +127,7 @@ void handleAddToElementArray(elementArray* eArr, int value){
   element elem = newElementWithValue(value);
   int ind = elementBinarySearch(eArr,0,eArr->currSize-1,elem);
   int removed = removeIfNecessary(eArr,&elem,ind);
-  printf("Removing -> %d\n",removed);
+  //printf("Removing -> %d\n",removed);
   if (!removed){
     shiftRightElementArray(eArr,ind);
   }
@@ -257,11 +257,11 @@ void exercise1(vetor* vet){
   int size = vet->currSize;
   int max=0,hMany,ind;
   elementArray* elementArr = initElementArray(size);
-  printVetor(vet);
+  //printVetor(vet);
   for (ind=0;ind<size;ind++){
     handleAddToElementArray(elementArr,getVetorValue(vet,ind));
-    printElementArray(elementArr);
-    printf("DONE\n");
+    //printElementArray(elementArr);
+    //printf("DONE\n");
   }
   max = getElementArrayMaxValue(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
