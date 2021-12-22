@@ -23,8 +23,8 @@ int* zeroArray(int size);
 
 typedef struct {
   int value;
-  short reps;
-  short step;
+  int reps;
+  int step;
 } element;
 
 typedef struct {
@@ -61,7 +61,11 @@ void printElementArray(elementArray* eArr);
 
 //Main
 
-void parseInput(vetor* vet, char* buffer);
+int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind);
+
+int possibleCutNumber(char** prev, int* prevSize, char* buffer);
+
+void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize);
 
 vetor* getVetorFromInput();
 

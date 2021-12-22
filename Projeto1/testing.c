@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 
 typedef struct {
   int value;
@@ -105,11 +106,11 @@ int binarySearch(int* array, int s, int e, int find) {
 
 
 int main(){
-
-  int arr[] = {3,4};
-  int find = 1;
-
-  printf("%d\n",binarySearch(arr,0,1,1));
+  int* a = NULL;
+  printf("%p,%p\n",&a,&*a);
+  a = (int*) malloc(sizeof(int)*3);
+  
+  
 
 
   return 0;

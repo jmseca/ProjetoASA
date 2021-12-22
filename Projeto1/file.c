@@ -2,10 +2,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
+#include <string.h>
 
 
 #define VETOR_BASE_SIZE 2
 #define BUFFER_SIZE 128
+
 
 
 
@@ -215,29 +218,82 @@ int numberOfMaxSizeSubseq(elementArray* eArr, int max){
 }
 
 
-
 vetor* getVetorFromInput(){
   vetor* vet = initVetor();
   char finishedReading = 0;
   char buffer[BUFFER_SIZE];
+  char** prev = (char**) malloc(sizeof(char*));
+  *prev = NULL;
+  int prevSize=0;
   while (!finishedReading){
     buffer[BUFFER_SIZE-2]='\0';
     fgets(buffer,BUFFER_SIZE,stdin);
     if (buffer[BUFFER_SIZE-2]=='\0'){
       finishedReading = 1;
     }
-    parseInput(vet,buffer);
+    parseInput(vet,buffer,prev,&prevSize);
   }
   return vet;
 }
 
-void parseInput(vetor* vet, char* buffer){
+int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind){
+  int prevInd;
+  int availableSize;
+  char c;
+  prevInd = strlen(*prev);
+  availableSize = *prevSize-prevInd-1;
+  //printf("CutNumber=%s\n",*prev);
+  while ((c=buffer[*ind])!=' ' && c!='\n' && c!='\0'){
+    if (availableSize <= 0){
+      availableSize = *prevSize-1;
+      (*prevSize)*=2;
+      *prev = (char*) realloc(*prev,(*prevSize)*sizeof(char));
+    }
+    //printf("prevSize=%d,\tprevInd=%d\n",*prevSize,prevInd);
+    *(*(prev)+prevInd)=c;
+    //printf("what\n");
+    prevInd++;
+    (*ind)++;
+  }
+  return atoi(*prev);
+}
+
+int possibleCutNumber(char** prev, int* prevSize, char* buffer){
+  short ind2;
+  char c;
+  ind2 = BUFFER_SIZE-3; //BUFFER_SIZE >= 3
+  while ((c=buffer[ind2])!=' ' && c!='\0'){
+    ind2--;
+  }
+  *prevSize = (BUFFER_SIZE-ind2-2)*2; //real size *2
+  /*if (*prev!=NULL){
+    free(*prev);
+  }*/
+  /*printf("prevSize inside pcn=%d\n",*prevSize);
+  printf("%p,%p\n",prev,*prev);
+  printf("%p.%p,%p\n",&prev,&*prev,&prevSize);
+  printf("%ld\n",(*prevSize)*sizeof(char));*/
+  *prev = (char*) malloc((*prevSize)*sizeof(char));
+  strcpy(*prev,&buffer[++(ind2)]);
+  return ind2;
+}
+
+void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize){
   char c;
   char read = 0;
-  char ind = 0;
+  short ind = 0;
   int i;
-
-  while ((c=buffer[ind])!='\0' && c!='\n'){
+  int stop = BUFFER_SIZE;
+  if (*prev!=NULL){
+    i = getCutNumber(prev,prevSize,buffer,&ind);
+    addToVetor(vet,i);
+    free(*prev);
+    *prev=NULL;
+  }
+  if ((c=buffer[BUFFER_SIZE-2])!=' ' && c!='\0'){
+    stop = possibleCutNumber(prev,prevSize,buffer); 
+  }
+  while (ind<stop && (c=buffer[ind])!='\0' && c!='\n'){
     if (c!=' ' && !read){
       i = atoi(&buffer[ind]);
       addToVetor(vet,i);
@@ -249,12 +305,27 @@ void parseInput(vetor* vet, char* buffer){
 }
 
 void runExercise1(){
+  clock_t c1 = clock();
   vetor* vet = getVetorFromInput();
+  clock_t c2 = clock();
+  printf("Colock time  =%ld\n",c2-c1);
   exercise1(vet);
+}
+
+void checkOCone(vetor* vet,int size){
+  int i;
+  for (i=0;i<size;i++){
+    if (i!=(vet->arr[i])){
+      printf("Missing %d\n",i);
+    }
+  }
 }
 
 void exercise1(vetor* vet){
   int size = vet->currSize;
+  printf("Vetor tem tamanho = %d\n",size);
+  /*printVetor(vet);*/
+  checkOCone(vet,10000);
   int max=0,hMany,ind;
   elementArray* elementArr = initElementArray(size);
   //printVetor(vet);
