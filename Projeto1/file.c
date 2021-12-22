@@ -57,11 +57,11 @@ int* zeroArray(int size){
    return arr;
 }
 
-// ELEMENT
+/* ELEMENT*/
 
 element initNullElement(){
   element new;
-  new.value = INFINITY;
+  new.value = 0;
   return new;
 }
 
@@ -76,10 +76,6 @@ element newElementWithValue(int val){
 elementArray* initElementArray(int siz){
   elementArray* eArr = (elementArray*) malloc(sizeof(elementArray));
   element* newArr = (element*) malloc(sizeof(element)*siz);
-  int i;
-  for (i=0; i<siz;i++){
-    newArr[i] = initNullElement();
-  }
   eArr->arr = newArr;
   eArr->currSize=0;
   eArr->size = siz;
@@ -98,14 +94,12 @@ int getElementArrayMaxValue(elementArray* eArr){
 
 
 int elementBinarySearch(elementArray* array, int s, int e, element find) {
-  //printf("s->%d,e->%d,value->%d\n",s,e,find.value);
   int m,comp;
   if ( (e==-1) || find.value > array->arr[e].value){
     return e+1;
   }
   m = (s + e)/2;
   comp = elementComparator(array->arr[m],find);
-  //printf("comp->%d\n",comp);
   if (!comp)
     return m;
   else if (comp<0)  
@@ -130,7 +124,6 @@ void handleAddToElementArray(elementArray* eArr, int value){
   element elem = newElementWithValue(value);
   int ind = elementBinarySearch(eArr,0,eArr->currSize-1,elem);
   int removed = removeIfNecessary(eArr,&elem,ind);
-  //printf("Removing -> %d\n",removed);
   if (!removed){
     shiftRightElementArray(eArr,ind);
   }
@@ -163,8 +156,6 @@ void setElementReps(elementArray* eArr,int ind, element* elem){
 
 int removeIfNecessary(elementArray* eArr, element* elem, int ind){
   int removing=0;
-  int maxInd = eArr->size -1;
-  //printElement(*elem);
   elem->step = !ind ? 0 : eArr->arr[ind-1].step +1; 
   
   setElementReps(eArr,ind,elem);
@@ -220,6 +211,7 @@ int numberOfMaxSizeSubseq(elementArray* eArr, int max){
 
 vetor* getVetorFromInput(){
   vetor* vet = initVetor();
+  char* check;
   char finishedReading = 0;
   char buffer[BUFFER_SIZE];
   char** prev = (char**) malloc(sizeof(char*));
@@ -227,7 +219,8 @@ vetor* getVetorFromInput(){
   int prevSize=0;
   while (!finishedReading){
     buffer[BUFFER_SIZE-2]='\0';
-    fgets(buffer,BUFFER_SIZE,stdin);
+    check=fgets(buffer,BUFFER_SIZE,stdin);
+    if (check==NULL) {return NULL;}
     if (buffer[BUFFER_SIZE-2]=='\0'){
       finishedReading = 1;
     }
@@ -242,37 +235,29 @@ int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind){
   char c;
   prevInd = strlen(*prev);
   availableSize = *prevSize-prevInd-1;
-  //printf("CutNumber=%s\n",*prev);
   while ((c=buffer[*ind])!=' ' && c!='\n' && c!='\0'){
     if (availableSize <= 0){
       availableSize = *prevSize-1;
       (*prevSize)*=2;
       *prev = (char*) realloc(*prev,(*prevSize)*sizeof(char));
     }
-    //printf("prevSize=%d,\tprevInd=%d\n",*prevSize,prevInd);
+    availableSize--;
     *(*(prev)+prevInd)=c;
-    //printf("what\n");
     prevInd++;
     (*ind)++;
   }
+  *(*(prev)+prevInd)='\0';
   return atoi(*prev);
 }
 
 int possibleCutNumber(char** prev, int* prevSize, char* buffer){
   short ind2;
   char c;
-  ind2 = BUFFER_SIZE-3; //BUFFER_SIZE >= 3
+  ind2 = BUFFER_SIZE-3; 
   while ((c=buffer[ind2])!=' ' && c!='\0'){
     ind2--;
   }
-  *prevSize = (BUFFER_SIZE-ind2-2)*2; //real size *2
-  /*if (*prev!=NULL){
-    free(*prev);
-  }*/
-  /*printf("prevSize inside pcn=%d\n",*prevSize);
-  printf("%p,%p\n",prev,*prev);
-  printf("%p.%p,%p\n",&prev,&*prev,&prevSize);
-  printf("%ld\n",(*prevSize)*sizeof(char));*/
+  *prevSize = (BUFFER_SIZE-ind2-2)*2; 
   *prev = (char*) malloc((*prevSize)*sizeof(char));
   strcpy(*prev,&buffer[++(ind2)]);
   return ind2;
@@ -304,35 +289,35 @@ void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize){
   }
 }
 
-void runExercise1(){
+short runExercise1(){
   clock_t c1 = clock();
   vetor* vet = getVetorFromInput();
+  if (vet==NULL){
+    return -1;
+  }
   clock_t c2 = clock();
-  printf("Colock time  =%ld\n",c2-c1);
+  /*printf("Colock time  =%ld\n",c2-c1);*/
   exercise1(vet);
+  clock_t c3 = clock();
+  /*printf("Colock time finished =%ld\n",c3-c2);*/
+  return 0;
+
 }
 
 void checkOCone(vetor* vet,int size){
   int i;
   for (i=0;i<size;i++){
-    if (i!=(vet->arr[i])){
-      printf("Missing %d\n",i);
+    if ((size-i)!=(vet->arr[i])){
     }
   }
 }
 
 void exercise1(vetor* vet){
   int size = vet->currSize;
-  printf("Vetor tem tamanho = %d\n",size);
-  /*printVetor(vet);*/
-  checkOCone(vet,10000);
   int max=0,hMany,ind;
   elementArray* elementArr = initElementArray(size);
-  //printVetor(vet);
   for (ind=0;ind<size;ind++){
     handleAddToElementArray(elementArr,getVetorValue(vet,ind));
-    //printElementArray(elementArr);
-    //printf("DONE\n");
   }
   max = getElementArrayMaxValue(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
@@ -340,11 +325,16 @@ void exercise1(vetor* vet){
 }
 
 int main(){
-  
+  short check;
   char exercise;
-  scanf("%c\n",&exercise);
+  check=scanf("%c\n",&exercise);
+  if (check!=1){
+    return -1;
+  }
   if (exercise=='1'){
-    runExercise1();
+    if(runExercise1()==-1){
+      return -1;
+    }
   } else {
     printf("Hello\n");
   }

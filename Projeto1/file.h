@@ -19,7 +19,7 @@ void freeVetor(vetor *vet);
 
 int* zeroArray(int size);
 
-// Element
+/* Element */
 
 typedef struct {
   int value;
@@ -59,7 +59,7 @@ int numberOfMaxSizeSubseq(elementArray* eArr, int max);
 
 void printElementArray(elementArray* eArr);
 
-//Main
+/* Main */
 
 int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind);
 
@@ -69,7 +69,7 @@ void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize);
 
 vetor* getVetorFromInput();
 
-void runExercise1();
+short runExercise1();
 
 void exercise1(vetor* vet);
 
