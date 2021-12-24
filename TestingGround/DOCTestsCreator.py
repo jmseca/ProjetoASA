@@ -32,7 +32,29 @@ for type in types:
 
 
 
-# Ordenadas decrscente
+# Ordenadas decrescente
+DCTestId="DC"
+skip=0
+previous=0
+for type in types:
+  print("type="+type)
+  n=0
+  for size in sizes:
+    mystr=''
+    if type=='one':
+      for i in range(size,0,-1):
+        mystr+=(str(i)+" ")
+    elif type=="two":
+      for i in range(size,0,-1):
+        mystr+=(str(i*2)+" ")
+    else:
+      skip=1
+    if not(skip):
+      f = open(DCTestId+type+sizeStr[n]+".in","w")
+      f.write("1\n"+mystr)
+      f.close()
+      n+=1
+
 
 
 # Random
