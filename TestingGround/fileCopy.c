@@ -402,7 +402,7 @@ int main(){
       return -1;
     }
   } else {
-    printf("Hello\n");
+    printf("Im pretty dumb\n");
   }
   return 0;
 }
