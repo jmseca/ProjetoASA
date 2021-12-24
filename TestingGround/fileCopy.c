@@ -386,6 +386,8 @@ void exercise1(vetor* vet){
   printf("%d %d\n",max,hMany);
 }
 
+/**/
+
 int main(){
   short check;
   char exercise;
