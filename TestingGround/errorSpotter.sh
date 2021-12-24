@@ -2,6 +2,7 @@
 
 testNumber=39
 
+rm file.out pythonfile.out
 
 for i in RandomTests/*
 do
@@ -9,4 +10,7 @@ do
     ./file < $i >> file.out 
     python3 correct.py < $i >> pythonfile.out
 done
+
+
+diff file.out pythonfile.out
 
