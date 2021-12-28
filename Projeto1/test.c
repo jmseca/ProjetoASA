@@ -2,14 +2,13 @@
 
 
 int main(){
-	int a = 0;
-	long int b=0;
-	while (a!=1){
-		b++;
-		a-=1;
+	if (1){
+		printf("ola\n");
+		while (1)
+			break;
+	} else {
+		printf("adeus\n");
 	}
-
-	printf("%ld\n",b);
 
 
 	return 0;

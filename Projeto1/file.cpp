@@ -1,10 +1,9 @@
-/*#include "file.h"*/
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-/*#include <time.h>*/
-#include <string.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <map>
 
+using namespace std;
 
 #define VETOR_BASE_SIZE 50
 #define BUFFER_SIZE 128
@@ -28,6 +27,8 @@ typedef struct {
   long int currSize;
   long int size;
 } elementArray;
+
+
 
 /*.h stuff*/
 
@@ -81,12 +82,12 @@ vetor* initVetor(){
    return vet;
 }
 
-void addToVetor(vetor *vet,int new){
+void addToVetor(vetor *vet,int newVal){
    if (vet->size == vet->currSize){
       vet->size*=2;
       vet->arr = (int*) realloc(vet->arr,sizeof(int)*(vet->size));
    }
-  vet->arr[vet->currSize] = new;
+  vet->arr[vet->currSize] = newVal;
   vet->currSize++;
 }
 
@@ -119,17 +120,17 @@ int* zeroArray(int size){
 /* ELEMENT*/
 
 element initNullElement(){
-  element new;
-  new.value = 0;
-  return new;
+  element newVal;
+  newVal.value = 0;
+  return newVal;
 }
 
 element newElementWithValue(int val){
-  element new;
-  new.value = val;
-  new.step=0;
-  new.reps=0;
-  return new;
+  element newVal;
+  newVal.value = val;
+  newVal.step=0;
+  newVal.reps=0;
+  return newVal;
 }
 
 elementArray* initElementArray(int siz){
@@ -392,7 +393,7 @@ void exercise1(vetor* vet){
 
 /*Exercise 2*/
 char runExercise2(){
-
+  return 0;
 }
 
 

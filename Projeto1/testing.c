@@ -3,6 +3,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+#define MAP_BASE_SIZE 50
+
 typedef struct {
   int value;
   short reps;
@@ -14,79 +16,53 @@ typedef struct {
   int currSize;
 } elementArray;
 
-/*
-element initNullElement(){
-  element new;
-  new.value = INFINITY;
-  return new;
-}
+typedef struct {
+  char occ;
+  int value;
+} mapElement;
 
-element newElementWithValue(int val){
-  element new;
-  new.value = val;
-  new.step=0;
-  new.reps=0;
-  return new;
-}
+typedef struct {
+  mapElement* mapArr;
+  int size;
+} myMap;
 
-element* initElementArray(int size){
-  element* newArr = (element*) malloc(sizeof(element)*size);
+myMap* initMyMap(){
+  myMap* map = (myMap*) malloc(sizeof(myMap));
+  map->mapArr = (mapElement*) malloc(sizeof(mapElement)*MAP_BASE_SIZE);
   int i;
-  for (i=0; i<size;i++){
-    newArr[i] = initNullElement();
+  for (i=0;i<MAP_BASE_SIZE;i++){
+    map->mapArr[i].occ=0; //free
   }
-  return newArr;
-} 
-
-
-int elementComparator(element e1, element e2){
-  int out = e1.value - e2.value;
-  return !out ? -1 : out;
+  map->size=MAP_BASE_SIZE;
 }
 
-int getElementArrayMaxValue(elementArray* eArr){
-  return eArr->arr[(eArr->currSize)-1].value;
+int myHashFunction(myMap* map, int value){
+  return value % map->size;
 }
 
-
-int elementBinarySearch(elementArray* array, int s, int e, element find) {
-  int m,comp;
-  if ( (e==-1) || find.value > array->arr[e].value){
-    return e+1;
+char addToMap(myMap* map, int val){
+  int ind = myHashFunction(map,val);
+  if (map->mapArr[ind].occ=0){
+    map->mapArr[ind].value=val;
+  } else {
+    return -1; 
   }
-  m = (s + e)/2;
-  comp = elementComparator(array->arr[m],find);
-  if (!comp)
-    return m;
-  else if (comp<0)  
-    return binarySearch(array, m+1, e, find);
-  else
-    return binarySearch(array, s, m-1, find);
+  return 0;
 }
 
-void handleAddToElementArray(elementArray* eArr, int value){
-  element elem = newElementWithValue(value);
-  int ind = elementBinarySearch(eArr,0,eArr->currSize-1,elem);
-  char removed = removeIfNecessary(eArr,&elem,ind);
-  if (!removed){
-    shiftRightElementArray(eArr,ind);  
+void rebuildMap(myMap* map){
+  myMap* newMap = initMyMap();
+  char err;
+  int i,val;
+  for (i=0;i<map->size;i++){
+    if ((val=map->mapArr[i].occ)==1){
+      if(addToMap(newMap,val)==-1){
+        freeMap(newMap);
+        
+      };
+    }
   }
-  addToElementArray(eArr,elem,ind);
-
 }
-
-int numberOfMaxSizeSubseq(elementArray* eArr, int max){
-  int ind = eArr->currSize-1;
-  int rep = 0;
-  element elem = eArr->arr[ind];
-  while ( elem.step == (max-1)){
-    rep += elem.reps;
-    ind--;
-    elem = eArr->arr[ind];
-  }
-  return rep;
-}
-*/
 
 
 int binarySearch(int* array, int s, int e, int find) {
