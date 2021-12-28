@@ -393,17 +393,17 @@ void exercise1(vetor* vet){
 
 int main(){
   short check;
-  char exercise;
-  check=scanf("%c\n",&exercise);
+  int exercise;
+  check=scanf("%d\n",&exercise);
   if (check!=1){
     return -1;
   }
-  if (exercise=='1'){
+  if (exercise==1){
     if(runExercise1()==-1){
       return -1;
     }
   } else {
-    vetor* vet = initVetor();
+    vetor* vet = NULL;
     printf("%d\n",vet->arr[100]);
   }
   return 0;
