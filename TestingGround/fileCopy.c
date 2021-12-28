@@ -147,7 +147,8 @@ int elementComparator(element e1, element e2){
 }
 
 int getElementArrayMaxValue(elementArray* eArr){
-  return eArr->arr[(eArr->currSize)-1].step +1;
+  int size = eArr->currSize;
+  return !size ? 0: eArr->arr[(size-1)].step +1;
 }
 
 
@@ -255,6 +256,7 @@ void addToElementArray(elementArray* eArr, element elem, int ind){
 
 long int numberOfMaxSizeSubseq(elementArray* eArr, int max){
   int ind = eArr->currSize-1;
+  if (ind==-1) { return 0; }
   long int out=0;
   element indElement = eArr->arr[ind];
   while (indElement.step+1 == max){
@@ -280,8 +282,7 @@ vetor* getVetorFromInput(){
   while (!finishedReading){
     buffer[BUFFER_SIZE-2]='\0';
     check=fgets(buffer,BUFFER_SIZE,stdin);
-    /*printf("%s\n\n",buffer);*/
-    if (check==NULL) {/*return NULL;*/break;}
+    if (check==NULL) { break; }
     if (buffer[BUFFER_SIZE-2]=='\0'){
       finishedReading = 1;
     }
@@ -402,7 +403,8 @@ int main(){
       return -1;
     }
   } else {
-    printf("Im pretty dumb\n");
+    vetor* vet = initVetor();
+    printf("%d\n",vet->arr[100]);
   }
   return 0;
 }
