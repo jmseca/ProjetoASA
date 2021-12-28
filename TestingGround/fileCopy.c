@@ -131,6 +131,10 @@ element newElementWithValue(int val){
   return new;
 }
 
+char elementSameValueSameStep(element e1, element e2){
+  return (e1.step == e2.step) && (e1.value == e2.value);
+}
+
 elementArray* initElementArray(int siz){
   elementArray* eArr = (elementArray*) malloc(sizeof(elementArray));
   element* newArr = (element*) malloc(sizeof(element)*siz);
@@ -183,6 +187,9 @@ void handleAddToElementArray(elementArray* eArr, int value){
   element elem = newElementWithValue(value);
   int ind = elementBinarySearch(eArr,0,eArr->currSize-1,elem);
   int removed = removeIfNecessary(eArr,&elem,ind);
+  if (removed==-1){
+    return;
+  }
   if (!removed){
     shiftRightElementArray(eArr,ind);
   }
@@ -223,6 +230,10 @@ int removeIfNecessary(elementArray* eArr, element* elem, int ind){
     while ( (eArr->arr[ind].step < elem->step) && (ind < eArr->currSize)){
       removing++;
       ind++;
+    }
+    if (!removing && elementSameValueSameStep(*elem,eArr->arr[ind])){
+      eArr->arr[ind].reps+= elem->reps;
+      return -1;
     }
     eArr->currSize -= removing==1 ? 1 : 0;
     return removing;
@@ -383,6 +394,7 @@ void exercise1(vetor* vet){
   elementArray* elementArr = initElementArray(size);
   for (ind=0;ind<size;ind++){
     handleAddToElementArray(elementArr,getVetorValue(vet,ind));
+    /*printElementArray(elementArr);*/
   }
   max = getElementArrayMaxValue(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
