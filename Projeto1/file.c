@@ -11,21 +11,21 @@
 
 /*Structs*/
 typedef struct {
-   int size;
-   int currSize;
+   long int size;
+   long int currSize;
    int* arr;
 } vetor;
 
 typedef struct {
   int value;
-  int reps;
-  int step;
+  long int reps;
+  long int step;
 } element;
 
 typedef struct {
   element* arr;
-  int currSize;
-  int size;
+  long int currSize;
+  long int size;
 } elementArray;
 
 /*.h stuff*/
@@ -52,7 +52,7 @@ int getElementArrayMaxValue(elementArray* eArr);
 
 void setElementReps(elementArray* eArr,int ind, element* elem);
 
-int numberOfMaxSizeSubseq(elementArray* eArr, int max);
+long int numberOfMaxSizeSubseq(elementArray* eArr, int max);
 
 void printElementArray(elementArray* eArr);
 
@@ -147,7 +147,8 @@ int elementComparator(element e1, element e2){
 }
 
 int getElementArrayMaxValue(elementArray* eArr){
-  return eArr->arr[(eArr->currSize)-1].step +1;
+  int size = eArr->currSize;
+  return !size ? 0: eArr->arr[(size-1)].step +1;
 }
 
 
@@ -168,11 +169,11 @@ int elementBinarySearch(elementArray* array, int s, int e, element find) {
 
 
 void printElementArray(elementArray* eArr){
-  printf("ArraySize=%d\n",eArr->currSize);
+  printf("ArraySize=%ld\n",eArr->currSize);
   int i = 0;
   int size = eArr->currSize;
   for (i=0;i<size;i++){
-    printf("Value=%d\tReps=%d\tSteps=%d\n",eArr->arr[i].value,eArr->arr[i].reps,eArr->arr[i].step);
+    printf("Value=%d\tReps=%ld\tSteps=%ld\n",eArr->arr[i].value,eArr->arr[i].reps,eArr->arr[i].step);
     printf("|\n");
   }
 }
@@ -192,7 +193,7 @@ void handleAddToElementArray(elementArray* eArr, int value){
 }
 
 void printElement(element elem){
-  printf("Value=%d\tReps=%d\tSteps=%d\n",elem.value,elem.reps,elem.step);
+  printf("Value=%d\tReps=%ld\tSteps=%ld\n",elem.value,elem.reps,elem.step);
 }
 
 void setElementReps(elementArray* eArr,int ind, element* elem){
@@ -253,9 +254,10 @@ void addToElementArray(elementArray* eArr, element elem, int ind){
   eArr->currSize++;
 }
 
-int numberOfMaxSizeSubseq(elementArray* eArr, int max){
+long int numberOfMaxSizeSubseq(elementArray* eArr, int max){
   int ind = eArr->currSize-1;
-  int out=0;
+  if (ind==-1) { return 0; }
+  long int out=0;
   element indElement = eArr->arr[ind];
   while (indElement.step+1 == max){
     out += indElement.reps;
@@ -280,7 +282,7 @@ vetor* getVetorFromInput(){
   while (!finishedReading){
     buffer[BUFFER_SIZE-2]='\0';
     check=fgets(buffer,BUFFER_SIZE,stdin);
-    if (check==NULL) {return NULL;}
+    if (check==NULL) { break; }
     if (buffer[BUFFER_SIZE-2]=='\0'){
       finishedReading = 1;
     }
@@ -370,35 +372,41 @@ void checkOCone(vetor* vet,int size){
 void printReps(elementArray* eArr){ 
   int i, size = eArr->currSize;
   for (i=0;i<size;i++){
-    printf("%d(s-%d,r-%d),",eArr->arr[i].value,eArr->arr[i].step,eArr->arr[i].reps);
+    printf("%d(s-%ld,r-%ld),",eArr->arr[i].value,eArr->arr[i].step,eArr->arr[i].reps);
   } printf("\n");
 }
 
 void exercise1(vetor* vet){
   int size = vet->currSize;
-  int max=0,hMany,ind;
+  long int max=0,hMany;
+  int ind;
   elementArray* elementArr = initElementArray(size);
   for (ind=0;ind<size;ind++){
     handleAddToElementArray(elementArr,getVetorValue(vet,ind));
   }
   max = getElementArrayMaxValue(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
-  printf("%d %d\n",max,hMany);
+  printf("%ld %ld\n",max,hMany);
 }
+
+/**/
 
 int main(){
   short check;
-  char exercise;
-  check=scanf("%c\n",&exercise);
-  if (check!=1){
-    return -1;
-  }
-  if (exercise=='1'){
+  long int exercise;
+  do {
+    check=scanf("%ld\n",&exercise);
+    if (check!=1){
+      return -1;
+    }
+    printf("exercise = %ld\n",exercise);
+  } while (exercise!=1 && exercise!=2);
+  if (exercise==1){
     if(runExercise1()==-1){
       return -1;
     }
   } else {
-    printf("Hello\n");
+    printf("you gone\n");
   }
   return 0;
 }
