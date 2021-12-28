@@ -456,7 +456,7 @@ elementArray* getFinishedElementArray(vetor* vet){
   for (ind=0;ind<size;ind++){
     element elem = newElementWithValue(getVetorValue(vet,ind));
     binInd = elementBinarySearch(elementArr,0,elementArr->currSize-1,elem);
-    setElementRepsAndStep(elementArr,&elem,ind);
+    setElementRepsAndStep(elementArr,&elem,binInd);
     handleAddToElementArray(elementArr, elem, binInd);
   }
   return elementArr;
