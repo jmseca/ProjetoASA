@@ -471,7 +471,7 @@ elementArray* getFinishedSecondElementArray(elementArray* eArr2 ,vetor* vet1){
     binInd = elementBinarySearch(eArr1,0,eArr1->currSize-1,elem);
     setElementRepsAndStep(eArr1,&elem,binInd);
     binInd2 = elementBinarySearch(eArr2,0,eArr2->currSize-1,elem);
-    if (elementSameValueSameStep(eArr2->arr[binInd2],elem)){
+    if ((binInd2 < eArr2->currSize) && elementSameValueSameStep(eArr2->arr[binInd2],elem)){
       handleAddToElementArray(eArr1, elem, binInd);
     } 
   }
