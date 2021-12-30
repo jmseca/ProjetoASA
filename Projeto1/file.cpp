@@ -310,15 +310,25 @@ void handleAddToElementArray(elementArray* eArr, element elem, int ind, char exe
 }
 
 int isValidElement(elementArray* eArr, element* elem, int vetInd, char* success){
-  int binInd;
+  int binInd,auxInd,baseStep;
   binInd = elementBinarySearch(eArr,0,eArr->currSize-1,*elem);
-  if (binInd && (eArr->arr[(binInd-1)].special >= vetInd) ){
-    *success = 0;
-  } else {
-    elem->special = vetInd;
+  if (!binInd){
     *success = 1;
-    elem->step = !binInd ? 0 : eArr->arr[(binInd-1)].step+1;
+    elem->step = 0;
+  } else {
+    *success = 0;
+    auxInd = binInd-1;
+    baseStep = eArr->arr[auxInd].step;
+    while (auxInd>=0 && eArr->arr[auxInd].step==baseStep){
+      if (eArr->arr[auxInd].special < vetInd){
+        *success=1;
+        elem->step = eArr->arr[(binInd-1)].step+1;
+        break;
+      }
+      auxInd--;
+    }
   }
+  elem->special = vetInd;
   return binInd;
 }
 
@@ -591,7 +601,8 @@ char runExercise2(){
   global->vet = initVetor();
   storeUserInput(global);
   filterFirstArray(global);
-  /*printf("Vetor1:\n");
+  /*
+  printf("Vetor1:\n");
   global->mLH->print();
   printf("Vetor2:\n");
   printVetor(global->vet);*/
