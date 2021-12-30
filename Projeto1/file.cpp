@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct {
   int value;
-  long int reps;
+  long int special; /*reps -> P1, ind -> P2*/
   long int step;
 } element;
 
@@ -106,19 +106,21 @@ int elementComparator(element e1, element e2);
 
 int elementBinarySearch(elementArray* array, int s, int e, element find);
 
-int removeIfNecessary(elementArray* eArr, element* elem, int ind);
+int removeIfNecessary(elementArray* eArr, element elem, int ind);
 
 void shiftRightElementArray(elementArray* eArr,int ind);
 
 void shiftLefElementArray(elementArray* eArr, int ind, int jump);
 
-void handleAddToElementArray(elementArray* eArr, int value);
+void handleAddToElementArray(elementArray* eArr, element elem, int ind);
 
 void addToElementArray(elementArray* eArr, element elem, int ind);
 
 int getElementArrayMaxValue(elementArray* eArr);
 
 void setElementReps(elementArray* eArr,int ind, element* elem);
+
+void setElementRepsAndStep(elementArray* eArr, element* elem, int ind);
 
 long int numberOfMaxSizeSubseq(elementArray* eArr, int max);
 
@@ -130,7 +132,7 @@ int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind);
 
 int possibleCutNumber(char** prev, int* prevSize, char* buffer);
 
-void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize);
+void parseInput(Global* global, char* buffer, char** prev, int* prevSize);
 
 vetor* storeUserInput();
 
@@ -219,8 +221,12 @@ element newElementWithValue(int val){
   element newVal;
   newVal.value = val;
   newVal.step=0;
-  newVal.reps=0;
+  newVal.special=0;
   return newVal;
+}
+
+char elementSameValueSameStep(element e1, element e2){
+  return (e1.step == e2.step) && (e1.value == e2.value);
 }
 
 elementArray* initElementArray(int siz){
@@ -265,36 +271,48 @@ void printElementArray(elementArray* eArr){
   int i = 0;
   int size = eArr->currSize;
   for (i=0;i<size;i++){
-    printf("Value=%d\tReps=%ld\tSteps=%ld\n",eArr->arr[i].value,eArr->arr[i].reps,eArr->arr[i].step);
+    printf("Value=%d\tReps=%ld\tSteps=%ld\n",eArr->arr[i].value,eArr->arr[i].special,eArr->arr[i].step);
     printf("|\n");
   }
 }
 
-
-void handleAddToElementArray(elementArray* eArr, int value){
-  element elem = newElementWithValue(value);
-  int ind = elementBinarySearch(eArr,0,eArr->currSize-1,elem);
-  int removed = removeIfNecessary(eArr,&elem,ind);
-  if (!removed){
-    shiftRightElementArray(eArr,ind);
+elementArray* getFinishedElementArray(vetor* vet){
+  int size = vet->currSize;
+  int ind,binInd;
+  elementArray* elementArr = initElementArray(size);
+  for (ind=0;ind<size;ind++){
+    element elem = newElementWithValue(getVetorValue(vet,ind));
+    binInd = elementBinarySearch(elementArr,0,elementArr->currSize-1,elem);
+    setElementRepsAndStep(elementArr,&elem,binInd);
+    handleAddToElementArray(elementArr, elem, binInd);
   }
-  addToElementArray(eArr,elem,ind);
-  if (removed>1){
-    shiftLefElementArray(eArr,ind,removed-1);
+  return elementArr;
+}
+
+void handleAddToElementArray(elementArray* eArr, element elem, int ind){
+  int removed = removeIfNecessary(eArr,elem,ind);
+  if (removed!=-1){
+    if (!removed){
+      shiftRightElementArray(eArr,ind);
+    }
+    addToElementArray(eArr,elem,ind);
+    if (removed>1){
+      shiftLefElementArray(eArr,ind,removed-1);
+    }
   }
 }
 
 void printElement(element elem){
-  printf("Value=%d\tReps=%ld\tSteps=%ld\n",elem.value,elem.reps,elem.step);
+  printf("Value=%d\tReps=%ld\tSteps=%ld\n",elem.value,elem.special,elem.step);
 }
 
 void setElementReps(elementArray* eArr,int ind, element* elem){
   if (!ind){
-    elem->reps=1;
+    elem->special=1;
   } else {
     element indElement = eArr->arr[ind-1];
     while (((indElement.step + 1) == elem->step)){
-      elem->reps+=indElement.reps;
+      elem->special+=indElement.special;
       ind--;
       if (ind-1 <0){
         break;
@@ -304,17 +322,22 @@ void setElementReps(elementArray* eArr,int ind, element* elem){
   }
 }
 
-
-int removeIfNecessary(elementArray* eArr, element* elem, int ind){
-  int removing=0;
+void setElementRepsAndStep(elementArray* eArr, element* elem, int ind){
   elem->step = !ind ? 0 : eArr->arr[ind-1].step +1; 
-  
   setElementReps(eArr,ind,elem);
-  
+}
+
+
+int removeIfNecessary(elementArray* eArr, element elem, int ind){
+  int removing=0;
   if (ind != eArr->currSize && eArr->currSize!=0){
-    while ( (eArr->arr[ind].step < elem->step) && (ind < eArr->currSize)){
+    while ( (eArr->arr[ind].step < elem.step) && (ind < eArr->currSize)){
       removing++;
       ind++;
+    }
+    if (!removing && elementSameValueSameStep(elem,eArr->arr[ind])){
+      eArr->arr[ind].special+= elem.special;
+      return -1;
     }
     eArr->currSize -= removing==1 ? 1 : 0;
     return removing;
@@ -352,7 +375,7 @@ long int numberOfMaxSizeSubseq(elementArray* eArr, int max){
   long int out=0;
   element indElement = eArr->arr[ind];
   while (indElement.step+1 == max){
-    out += indElement.reps;
+    out += indElement.special;
     ind--;
     if (ind<0){
       break;
@@ -419,7 +442,7 @@ void addToVetorByExercise(Global* global,int i){
   if (isExercise1(global)){
     addToVetor(global->vet,i);
   } else if (isExercise2Part1(global)){
-    global->mLH->addToList(i)
+    global->mLH->addToList(i);
     global->mp->insert({i,0});
   } else {
     if (global->mp->find(i) != global->mp->end()){
@@ -455,38 +478,27 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize){
 }
 
 short runExercise1(){
-  vetor* vet = storeUserInput();
-  if (vet==NULL){
-    return -1;
-  }
-  exercise1(vet);
+  Global* global = initGlobalEx1();
+  storeUserInput(global,1);
+  exercise1(global->vet);
   return 0;
 
-}
-
-void checkOCone(vetor* vet,int size){
-  int i;
-  for (i=0;i<size;i++){
-    if ((size-i)!=(vet->arr[i])){
-    }
-  }
 }
 
 void printReps(elementArray* eArr){ 
   int i, size = eArr->currSize;
   for (i=0;i<size;i++){
-    printf("%d(s-%ld,r-%ld),",eArr->arr[i].value,eArr->arr[i].step,eArr->arr[i].reps);
+    printf("%d(s-%ld,r-%ld),",eArr->arr[i].value,eArr->arr[i].step,eArr->arr[i].special);
   } printf("\n");
 }
+
+
 
 void exercise1(vetor* vet){
   int size = vet->currSize;
   long int max=0,hMany;
   int ind;
-  elementArray* elementArr = initElementArray(size);
-  for (ind=0;ind<size;ind++){
-    handleAddToElementArray(elementArr,getVetorValue(vet,ind));
-  }
+  elementArray* elementArr = getFinishedElementArray(vet);
   max = getElementArrayMaxValue(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
   printf("%ld %ld\n",max,hMany);
