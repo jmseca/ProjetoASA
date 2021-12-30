@@ -1,8 +1,8 @@
 import random as ra
 
 dir = "RandomTests/"
-fixedSize = 1
-testsPerType = 10
+fixedSize = 3
+testsPerType = 3
 for n in range(testsPerType):
     mystr=''
     for i in range((10**fixedSize)):

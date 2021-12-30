@@ -57,7 +57,7 @@ void rebuildMap(myMap* map){
   for (i=0;i<map->size;i++){
     if ((val=map->mapArr[i].occ)==1){
       if(addToMap(newMap,val)==-1){
-        freeMap(newMap);
+        //freeMap(newMap);
         
       };
     }
@@ -82,10 +82,18 @@ int binarySearch(int* array, int s, int e, int find) {
 
 
 int main(){
-  int* a = NULL;
-  printf("%p,%p\n",&a,&*a);
-  a = (int*) malloc(sizeof(int)*3);
-  
+  int* a = (int*) malloc(sizeof(int));
+  int* b = (int*) malloc(sizeof(int));
+  int* c = (int*) malloc(sizeof(int));
+  *a = 2;
+  *b = 3;
+  printf("a = %d, b = %d\n",*a,*b);
+  c = a;
+  a = b;
+  b = c;
+
+
+  printf("a = %d, b = %d\n",*a,*b);
   
 
 
