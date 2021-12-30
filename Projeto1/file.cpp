@@ -94,6 +94,7 @@ typedef struct {
   vetor* vet;
   myListHead* mLH;
   unordered_map<int,char>* mp;
+  int numberOfDifferentValues; /*may cause headaches*/
 } Global;
 
 
@@ -107,13 +108,13 @@ int elementComparator(element e1, element e2);
 
 int elementBinarySearch(elementArray* array, int s, int e, element find);
 
-int removeIfNecessary(elementArray* eArr, element elem, int ind);
+int removeIfNecessary(elementArray* eArr, element elem, int ind, char exercise);
 
 void shiftRightElementArray(elementArray* eArr,int ind);
 
 void shiftLefElementArray(elementArray* eArr, int ind, int jump);
 
-void handleAddToElementArray(elementArray* eArr, element elem, int ind);
+void handleAddToElementArray(elementArray* eArr, element elem, int ind, char exercise);
 
 void addToElementArray(elementArray* eArr, element elem, int ind);
 
@@ -127,6 +128,8 @@ long int numberOfMaxSizeSubseq(elementArray* eArr, int max);
 
 void printElementArray(elementArray* eArr);
 
+int getIndWithSameValue(vetor* vet, int value, int start);
+
 /* Main */
 
 int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind);
@@ -139,7 +142,7 @@ void storeUserInput(Global* global);
 
 short runExercise1();
 
-void exercise1(vetor* vet);
+void exercise1(vetor* vet, int diffValues);
 
 /* VETOR */
 
@@ -193,6 +196,7 @@ Global* initGlobalEx1(){
   global->vet = initVetor();
   global->mp = NULL;
   global->mLH = NULL;
+  global->numberOfDifferentValues=0;
   return global;
 }
 
@@ -201,6 +205,7 @@ Global* initGlobalEx2Part1(){
   global->vet = NULL;
   global->mp = new unordered_map<int,char>;
   global->mLH = new myListHead();
+  global->numberOfDifferentValues=0;
   return global;
 }
 
@@ -279,21 +284,20 @@ void printElementArray(elementArray* eArr){
   }
 }
 
-elementArray* getFinishedElementArray(vetor* vet){
-  int size = vet->currSize;
+elementArray* getFinishedElementArray(vetor* vet,int eArrSize){
   int ind,binInd;
-  elementArray* elementArr = initElementArray(size);
-  for (ind=0;ind<size;ind++){
+  elementArray* elementArr = initElementArray(eArrSize);
+  for (ind=0;ind<eArrSize;ind++){
     element elem = newElementWithValue(getVetorValue(vet,ind));
     binInd = elementBinarySearch(elementArr,0,elementArr->currSize-1,elem);
     setElementRepsAndStep(elementArr,&elem,binInd);
-    handleAddToElementArray(elementArr, elem, binInd);
+    handleAddToElementArray(elementArr, elem, binInd,1);
   }
   return elementArr;
 }
 
-void handleAddToElementArray(elementArray* eArr, element elem, int ind){
-  int removed = removeIfNecessary(eArr,elem,ind);
+void handleAddToElementArray(elementArray* eArr, element elem, int ind, char exercise){
+  int removed = removeIfNecessary(eArr,elem,ind, exercise);
   if (removed!=-1){
     if (!removed){
       shiftRightElementArray(eArr,ind);
@@ -304,6 +308,41 @@ void handleAddToElementArray(elementArray* eArr, element elem, int ind){
     }
   }
 }
+
+int isValidElement(elementArray* eArr, element* elem, int vetInd, char* success){
+  int binInd;
+  binInd = elementBinarySearch(eArr,0,eArr->currSize-1,*elem);
+  if (!binInd || (eArr->arr[(binInd-1)].special < vetInd) ){
+    elem->special = vetInd;
+    *success = 1;
+  } else {
+    *success = 0;
+  }
+  return binInd;
+}
+
+
+elementArray* getFinishedSecondElementArray(myListHead* mLH, vetor* vet, int eArrSize){
+  int value,vetInd,binInd;
+  char errorHandler,success=0;
+  elementArray* eArr = initElementArray(eArrSize);
+  element elem;
+  while (mLH->first!=NULL){
+    vetInd=0;
+    value = mLH->pop(&errorHandler); /*errorHandler wont be needed*/
+    elem = newElementWithValue(value);
+    while (!success){
+      vetInd = getIndWithSameValue(vet,value,vetInd);
+      if (vetInd<0) { break; }
+      binInd = isValidElement(eArr,&elem,vetInd,&success);
+    }
+    if (vetInd>0){
+      handleAddToElementArray(eArr,elem,binInd,2);
+    }
+  }
+  return eArr;
+}
+
 
 void printElement(element elem){
   printf("Value=%d\tReps=%ld\tSteps=%ld\n",elem.value,elem.special,elem.step);
@@ -331,7 +370,7 @@ void setElementRepsAndStep(elementArray* eArr, element* elem, int ind){
 }
 
 
-int removeIfNecessary(elementArray* eArr, element elem, int ind){
+int removeIfNecessary(elementArray* eArr, element elem, int ind, char exercise){
   int removing=0;
   if (ind != eArr->currSize && eArr->currSize!=0){
     while ( (eArr->arr[ind].step < elem.step) && (ind < eArr->currSize)){
@@ -339,7 +378,7 @@ int removeIfNecessary(elementArray* eArr, element elem, int ind){
       ind++;
     }
     if (!removing && elementSameValueSameStep(elem,eArr->arr[ind])){
-      eArr->arr[ind].special+= elem.special;
+      eArr->arr[ind].special += exercise==1 ? elem.special : 0;
       return -1;
     }
     eArr->currSize -= removing==1 ? 1 : 0;
@@ -443,12 +482,14 @@ int possibleCutNumber(char** prev, int* prevSize, char* buffer){
 
 void addToVetorByExercise(Global* global,int i){
   if (isExercise1(global)){
+    global->numberOfDifferentValues++;
     addToVetor(global->vet,i);
   } else if (isExercise2Part1(global)){
     global->mLH->addToList(i);
     global->mp->insert({i,0});
   } else {
     if (global->mp->find(i) != global->mp->end()){
+      global->numberOfDifferentValues++;
       addToVetor(global->vet,i);
       (*(global->mp))[i] = 1;
     }
@@ -490,7 +531,7 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* p
 short runExercise1(){
   Global* global = initGlobalEx1();
   storeUserInput(global);
-  exercise1(global->vet);
+  exercise1(global->vet,global->numberOfDifferentValues);
   return 0;
 }
 
@@ -517,14 +558,36 @@ void filterFirstArray(Global* global){
   }
 }
 
+int getIndWithSameValue(vetor* vet, int value, int start){
+  int size = vet->currSize;
+  if (start >= size){
+    return -1;
+  }
+  for (;start<size;start++){
+    if (vet->arr[start] == value){
+      return start;
+    }
+  }
+  return -2; /*Erro grave*/
+}
+
+
+void exercise2(myListHead* mLH, vetor* vet,int diffValues){
+  long int max = 0;
+  elementArray* eArr = getFinishedSecondElementArray(mLH,vet,diffValues);
+  max = getElementArrayMaxValue(eArr);
+  printf("%ld\n",max);
+}
+
+
+
 char runExercise2(){
   Global* global = initGlobalEx2Part1();
   storeUserInput(global);
   global->vet = initVetor();
   storeUserInput(global);
   filterFirstArray(global);
-  global->mLH->print();
-  //exercise2(global->mLH,global->vet);
+  exercise2(global->mLH,global->vet,global->numberOfDifferentValues);
   return 0;
 }
 
@@ -537,9 +600,9 @@ void printReps(elementArray* eArr){
 
 
 
-void exercise1(vetor* vet){
+void exercise1(vetor* vet, int diffValues){
   long int max=0,hMany;
-  elementArray* elementArr = getFinishedElementArray(vet);
+  elementArray* elementArr = getFinishedElementArray(vet,diffValues);
   max = getElementArrayMaxValue(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
   printf("%ld %ld\n",max,hMany);
