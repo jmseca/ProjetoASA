@@ -480,21 +480,24 @@ int possibleCutNumber(char** prev, int* prevSize, char* buffer){
   return ind2;
 }
 
-void addToVetorByExercise(Global* global,int i){
+void addToVetorByExercise(Global* global,int i,int* prevValue){
   if (isExercise1(global)){
     global->numberOfDifferentValues++;
     addToVetor(global->vet,i);
-  } else if (isExercise2Part1(global)){
-    global->mLH->addToList(i);
-    global->mp->insert({i,0});
-  } else {
-    if (global->mp->find(i) != global->mp->end()){
+  } else if (i!=(*prevValue) || !(global->vet->currSize)) {
+    if (isExercise2Part1(global)){
+      global->mLH->addToList(i);
+      global->mp->insert({i,0});
+      *prevValue = i;
+    } else if ((global->mp->find(i) != global->mp->end())){
       global->numberOfDifferentValues++;
       addToVetor(global->vet,i);
       (*(global->mp))[i] = 1;
+      *prevValue = i;
     }
   }
 }
+
 
 void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* prevValue){
   char c;
@@ -504,10 +507,7 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* p
   int stop = BUFFER_SIZE;
   if (*prev!=NULL){
     i = getCutNumber(prev,prevSize,buffer,&ind);
-    if (i!=(*prevValue) || !(global->vet->currSize)){
-      *prevValue = i;
-      addToVetorByExercise(global,i);
-    }
+    addToVetorByExercise(global,i,prevValue);
     free(*prev);
     *prev=NULL;
   }
@@ -517,10 +517,7 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* p
   while (ind<stop && (c=buffer[ind])!='\0' && c!='\n'){
     if (c!=' ' && !read){
       i = atoi(&buffer[ind]);
-      if (i!=(*prevValue) || !(global->vet->currSize)){
-        *prevValue = i;
-        addToVetorByExercise(global,i);
-      }
+      addToVetorByExercise(global,i,prevValue);
       read=1;
     }
     if (c==' ') {read = 0;}
