@@ -312,11 +312,12 @@ void handleAddToElementArray(elementArray* eArr, element elem, int ind, char exe
 int isValidElement(elementArray* eArr, element* elem, int vetInd, char* success){
   int binInd;
   binInd = elementBinarySearch(eArr,0,eArr->currSize-1,*elem);
-  if (!binInd || (eArr->arr[(binInd-1)].special < vetInd) ){
+  if (binInd && (eArr->arr[(binInd-1)].special >= vetInd) ){
+    *success = 0;
+  } else {
     elem->special = vetInd;
     *success = 1;
-  } else {
-    *success = 0;
+    elem->step = !binInd ? 0 : eArr->arr[(binInd-1)].step+1;
   }
   return binInd;
 }
@@ -324,19 +325,21 @@ int isValidElement(elementArray* eArr, element* elem, int vetInd, char* success)
 
 elementArray* getFinishedSecondElementArray(myListHead* mLH, vetor* vet, int eArrSize){
   int value,vetInd,binInd;
-  char errorHandler,success=0;
+  char errorHandler,success;
   elementArray* eArr = initElementArray(eArrSize);
   element elem;
   while (mLH->first!=NULL){
-    vetInd=0;
+    vetInd=-1;
     value = mLH->pop(&errorHandler); /*errorHandler wont be needed*/
     elem = newElementWithValue(value);
+    success = 0;
     while (!success){
-      vetInd = getIndWithSameValue(vet,value,vetInd);
+      vetInd = getIndWithSameValue(vet,value,++vetInd);
       if (vetInd<0) { break; }
       binInd = isValidElement(eArr,&elem,vetInd,&success);
+
     }
-    if (vetInd>0){
+    if (vetInd>=0){
       handleAddToElementArray(eArr,elem,binInd,2);
     }
   }
@@ -484,12 +487,15 @@ void addToVetorByExercise(Global* global,int i,int* prevValue){
   if (isExercise1(global)){
     global->numberOfDifferentValues++;
     addToVetor(global->vet,i);
-  } else if (i!=(*prevValue) || !(global->vet->currSize)) {
-    if (isExercise2Part1(global)){
-      global->mLH->addToList(i);
-      global->mp->insert({i,0});
-      *prevValue = i;
-    } else if ((global->mp->find(i) != global->mp->end())){
+  } else if (isExercise2Part1(global)){ 
+    if  ((( i!=(*prevValue) || (global->mLH->first == NULL) ))){
+        global->mLH->addToList(i);
+        global->mp->insert({i,0});
+        *prevValue = i;
+      } 
+  }
+  else if ((global->mp->find(i) != global->mp->end())){
+    if (((i!=(*prevValue) || !(global->vet->currSize)))){
       global->numberOfDifferentValues++;
       addToVetor(global->vet,i);
       (*(global->mp))[i] = 1;
@@ -497,6 +503,7 @@ void addToVetorByExercise(Global* global,int i,int* prevValue){
     }
   }
 }
+
 
 
 void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* prevValue){
@@ -584,6 +591,10 @@ char runExercise2(){
   global->vet = initVetor();
   storeUserInput(global);
   filterFirstArray(global);
+  /*printf("Vetor1:\n");
+  global->mLH->print();
+  printf("Vetor2:\n");
+  printVetor(global->vet);*/
   exercise2(global->mLH,global->vet,global->numberOfDifferentValues);
   return 0;
 }
