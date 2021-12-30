@@ -28,6 +28,60 @@ typedef struct {
   long int size;
 } elementArray;
 
+class myList {
+  public:
+    int value;
+    myList* next;
+
+    myList(int val){
+      val = value;
+      next = NULL;
+    }
+
+    void deleteL(myList* prev){
+      prev->next = this->next;
+      free(this);
+    }
+};
+
+class myListHead {
+  public:
+    myList* first;
+    myList* last;
+
+    myListHead(){
+      first = NULL; last = NULL;
+    }
+
+    myListHead(int value){
+      myList mL = myList(value);
+      *first = mL;
+      *last = mL;
+    }
+
+    void addToList(int value){
+      if (first == NULL){
+        myListHead(value);
+      } else {
+        myList newEl = myList(value);
+        *(last->next) = newEl;
+        *last = newEl;
+      }
+    }
+
+    int pop(char* errorHandler){
+      *errorHandler = 0;
+      if (first!=NULL){
+        int out =  first->value;
+        first = first->next;
+        return out;
+      } else {
+        *errorHandler = 1;
+        return 0;
+      }
+    }
+};
+
 typedef struct {
   vetor* vet1;
   vetor* vet2;
