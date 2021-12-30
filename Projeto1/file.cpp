@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include <map>
+#include <unordered_map>
 
 using namespace std;
 
@@ -38,9 +38,10 @@ class myList {
       next = NULL;
     }
 
-    void deleteL(myList* prev){
+    myList* deleteL(myList* prev){
       prev->next = this->next;
       free(this);
+      return prev->next;
     }
 };
 
@@ -49,21 +50,21 @@ class myListHead {
     myList* first;
     myList* last;
 
-    myListHead(){
-      first = NULL; last = NULL;
-    }
-
     myListHead(int value){
-      myList mL = myList(value);
       first = new myList(value);
       last = first;
     }
 
-    void addToList(int value){
+    myListHead(){
+      first = NULL; last = NULL;
+    }
+
+    void addToList(int val){
       if (first == NULL){
-        myListHead(value);
+        first = new myList(val);
+        last = first;
       } else {
-        last->next = new myList(value);
+        last->next = new myList(val);
         last = last->next;
       }
     }
@@ -92,7 +93,7 @@ class myListHead {
 typedef struct {
   vetor* vet;
   myListHead* mLH;
-  map<int,char>* mp;
+  unordered_map<int,char>* mp;
 } Global;
 
 
@@ -132,9 +133,9 @@ int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind);
 
 int possibleCutNumber(char** prev, int* prevSize, char* buffer);
 
-void parseInput(Global* global, char* buffer, char** prev, int* prevSize);
+void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* prevValue);
 
-vetor* storeUserInput();
+void storeUserInput(Global* global);
 
 short runExercise1();
 
@@ -198,7 +199,7 @@ Global* initGlobalEx1(){
 Global* initGlobalEx2Part1(){
   Global* global = (Global*) malloc(sizeof(Global));
   global->vet = NULL;
-  global->mp = new map<int,char>;
+  global->mp = new unordered_map<int,char>;
   global->mLH = new myListHead();
   return global;
 }
@@ -388,12 +389,12 @@ long int numberOfMaxSizeSubseq(elementArray* eArr, int max){
 }
 
 
-void storeUserInput(Global* global,char exercise){
+void storeUserInput(Global* global){
   char* check;
   char buffer[BUFFER_SIZE];
   char finishedReading = 0;
   char** prev = (char**) malloc(sizeof(char*));
-  int prevSize=0;
+  int prevValue=0,prevSize=0;
   *prev = NULL;
   while (!finishedReading){
     buffer[BUFFER_SIZE-2]='\0';
@@ -402,7 +403,7 @@ void storeUserInput(Global* global,char exercise){
     if (buffer[BUFFER_SIZE-2]=='\0'){
       finishedReading = 1;
     }
-    parseInput(global,buffer,prev,&prevSize);
+    parseInput(global,buffer,prev,&prevSize,&prevValue);
   }
 }
 
@@ -449,11 +450,12 @@ void addToVetorByExercise(Global* global,int i){
   } else {
     if (global->mp->find(i) != global->mp->end()){
       addToVetor(global->vet,i);
+      (*(global->mp))[i] = 1;
     }
   }
 }
 
-void parseInput(Global* global, char* buffer, char** prev, int* prevSize){
+void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* prevValue){
   char c;
   char read = 0;
   short ind = 0;
@@ -461,7 +463,10 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize){
   int stop = BUFFER_SIZE;
   if (*prev!=NULL){
     i = getCutNumber(prev,prevSize,buffer,&ind);
-    addToVetorByExercise(global,i);
+    if (i!=(*prevValue) || !(global->vet->currSize)){
+      *prevValue = i;
+      addToVetorByExercise(global,i);
+    }
     free(*prev);
     *prev=NULL;
   }
@@ -471,7 +476,10 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize){
   while (ind<stop && (c=buffer[ind])!='\0' && c!='\n'){
     if (c!=' ' && !read){
       i = atoi(&buffer[ind]);
-      addToVetorByExercise(global,i);
+      if (i!=(*prevValue) || !(global->vet->currSize)){
+        *prevValue = i;
+        addToVetorByExercise(global,i);
+      }
       read=1;
     }
     if (c==' ') {read = 0;}
@@ -481,10 +489,43 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize){
 
 short runExercise1(){
   Global* global = initGlobalEx1();
-  storeUserInput(global,1);
+  storeUserInput(global);
   exercise1(global->vet);
   return 0;
+}
 
+
+void filterFirstArray(Global* global){
+  myList* myCurrList = global->mLH->first;
+  while (myCurrList != NULL && !((*(global->mp))[myCurrList->value])){
+    myCurrList = myCurrList->next;
+    global->mLH->first = myCurrList;
+  }
+  if (myCurrList != NULL){
+    int prevValue = myCurrList->value;
+    myList* myPrevList = myCurrList;
+    myCurrList = myCurrList->next;
+    while (myCurrList!=NULL){
+      if ( !((*(global->mp))[myCurrList->value]) || myCurrList->value==prevValue){
+        myCurrList = myCurrList->deleteL(myPrevList);
+      } else {
+        prevValue = myCurrList->value;
+        myPrevList = myCurrList;
+        myCurrList = myCurrList->next;
+      }
+    }
+  }
+}
+
+char runExercise2(){
+  Global* global = initGlobalEx2Part1();
+  storeUserInput(global);
+  global->vet = initVetor();
+  storeUserInput(global);
+  filterFirstArray(global);
+  global->mLH->print();
+  //exercise2(global->mLH,global->vet);
+  return 0;
 }
 
 void printReps(elementArray* eArr){ 
@@ -497,19 +538,13 @@ void printReps(elementArray* eArr){
 
 
 void exercise1(vetor* vet){
-  int size = vet->currSize;
   long int max=0,hMany;
-  int ind;
   elementArray* elementArr = getFinishedElementArray(vet);
   max = getElementArrayMaxValue(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
   printf("%ld %ld\n",max,hMany);
 }
 
-/*Exercise 2*/
-char runExercise2(){
-  return 0;
-}
 
 
 int main(){
