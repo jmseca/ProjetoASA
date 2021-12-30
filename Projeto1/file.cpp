@@ -192,6 +192,7 @@ Global* initGlobalEx1(){
   global->vet = initVetor();
   global->mp = NULL;
   global->mLH = NULL;
+  return global;
 }
 
 Global* initGlobalEx2Part1(){
@@ -199,6 +200,7 @@ Global* initGlobalEx2Part1(){
   global->vet = NULL;
   global->mp = new map<int,char>;
   global->mLH = new myListHead();
+  return global;
 }
 
 char isExercise1(Global* global){
