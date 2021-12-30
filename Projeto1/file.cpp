@@ -89,6 +89,12 @@ class myListHead {
     }
 };
 
+typedef struct {
+  vetor* vet;
+  myListHead* mLH;
+  map<int,char>* mp;
+} Global;
+
 
 /*.h stuff*/
 
@@ -126,7 +132,7 @@ int possibleCutNumber(char** prev, int* prevSize, char* buffer);
 
 void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize);
 
-vetor* getVetorFromInput();
+vetor* storeUserInput();
 
 short runExercise1();
 
@@ -175,6 +181,30 @@ int* zeroArray(int size){
       arr[i]=0;
    }
    return arr;
+}
+
+
+
+Global* initGlobalEx1(){
+  Global* global = (Global*) malloc(sizeof(Global));
+  global->vet = initVetor();
+  global->mp = NULL;
+  global->mLH = NULL;
+}
+
+Global* initGlobalEx2Part1(){
+  Global* global = (Global*) malloc(sizeof(Global));
+  global->vet = NULL;
+  global->mp = new map<int,char>;
+  global->mLH = new myListHead();
+}
+
+char isExercise1(Global* global){
+  return global->mp==NULL;
+}
+
+char isExercise2Part1(Global* global){
+  return global->vet==NULL;
 }
 
 /* ELEMENT*/
@@ -333,14 +363,13 @@ long int numberOfMaxSizeSubseq(elementArray* eArr, int max){
 }
 
 
-vetor* getVetorFromInput(){
-  vetor* vet = initVetor();
+void storeUserInput(Global* global,char exercise){
   char* check;
-  char finishedReading = 0;
   char buffer[BUFFER_SIZE];
+  char finishedReading = 0;
   char** prev = (char**) malloc(sizeof(char*));
-  *prev = NULL;
   int prevSize=0;
+  *prev = NULL;
   while (!finishedReading){
     buffer[BUFFER_SIZE-2]='\0';
     check=fgets(buffer,BUFFER_SIZE,stdin);
@@ -348,9 +377,8 @@ vetor* getVetorFromInput(){
     if (buffer[BUFFER_SIZE-2]=='\0'){
       finishedReading = 1;
     }
-    parseInput(vet,buffer,prev,&prevSize);
+    parseInput(global,buffer,prev,&prevSize);
   }
-  return vet;
 }
 
 int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind){
@@ -387,7 +415,20 @@ int possibleCutNumber(char** prev, int* prevSize, char* buffer){
   return ind2;
 }
 
-void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize){
+void addToVetorByExercise(Global* global,int i){
+  if (isExercise1(global)){
+    addToVetor(global->vet,i);
+  } else if (isExercise2Part1(global)){
+    global->mLH->addToList(i)
+    global->mp->insert({i,0});
+  } else {
+    if (global->mp->find(i) != global->mp->end()){
+      addToVetor(global->vet,i);
+    }
+  }
+}
+
+void parseInput(Global* global, char* buffer, char** prev, int* prevSize){
   char c;
   char read = 0;
   short ind = 0;
@@ -395,7 +436,7 @@ void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize){
   int stop = BUFFER_SIZE;
   if (*prev!=NULL){
     i = getCutNumber(prev,prevSize,buffer,&ind);
-    addToVetor(vet,i);
+    addToVetorByExercise(global,i);
     free(*prev);
     *prev=NULL;
   }
@@ -405,7 +446,7 @@ void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize){
   while (ind<stop && (c=buffer[ind])!='\0' && c!='\n'){
     if (c!=' ' && !read){
       i = atoi(&buffer[ind]);
-      addToVetor(vet,i);
+      addToVetorByExercise(global,i);
       read=1;
     }
     if (c==' ') {read = 0;}
@@ -414,7 +455,7 @@ void parseInput(vetor* vet, char* buffer, char** prev, int* prevSize){
 }
 
 short runExercise1(){
-  vetor* vet = getVetorFromInput();
+  vetor* vet = storeUserInput();
   if (vet==NULL){
     return -1;
   }
