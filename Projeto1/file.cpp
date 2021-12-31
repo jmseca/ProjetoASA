@@ -601,11 +601,10 @@ char runExercise2(){
   global->vet = initVetor();
   storeUserInput(global);
   filterFirstArray(global);
-  /*
   printf("Vetor1:\n");
   global->mLH->print();
   printf("Vetor2:\n");
-  printVetor(global->vet);*/
+  printVetor(global->vet);
   exercise2(global->mLH,global->vet,global->numberOfDifferentValues);
   return 0;
 }
