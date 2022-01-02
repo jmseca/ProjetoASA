@@ -50,6 +50,10 @@ class element {
         return 0;
       }
     }
+
+    void print(){
+      printf("{val->%d, step->%ld, special->%ld}\n",value,step,special);
+    }
 };
 
 typedef struct {
@@ -621,19 +625,16 @@ int getIndWithSameValue(vetor* vet, int value, int start){
 
 
 void firstSearchUpdate(myList<element>* currElem, myList<element>* prevElem,
-int* indToPass, int* bestStep, int* elemStep, element elem)
+int* bestStep, int* elemStep, element elem)
 {
   int currStep = currElem->value.step;
   int currInd = currElem->value.special;
-  if ((*bestStep)<currStep || ((*bestStep)==currStep && currInd<(*indToPass))){
-    *bestStep = currStep;
-    *indToPass = currInd;
+  if ((*bestStep)<=currStep){
+    *bestStep = currStep+1;
   }
-  if ((currStep>elem.step) && (currInd<elem.special)){
-    *elemStep = currStep;
+  if ((currStep>=(*elemStep)) && (currInd<elem.special)){
+    *elemStep = currStep+1;
   }
-  prevElem = currElem;
-  currElem = currElem->next;
 }
 
 void deleteElements(myList<element>* currElem){
@@ -646,86 +647,96 @@ void deleteElements(myList<element>* currElem){
   }
 }
 
-myList<element>* checkInsertInElemList(myList<element>* prevElem, element elem){
-  myList<element>* newL;
-  if (!(prevElem->value.deletes(elem))){
-    newL = new myList<element>(elem);
+int checkInsertInElemList(myListHead<element>* myElist, myList<element>* prevElem,
+element elem, int elemStep, int* bestStep, char* done, char control)
+{
+  *done = elemStep==(*bestStep);
+  elem.step = elemStep;
+  myList<element>* newL = new myList<element>(elem);
+  if (!control){
+    if (prevElem==NULL){
+      myElist->first = newL;
+      newL->next = NULL;
+    } else {
+      newL->next = prevElem;
+      myElist->first = newL;
+    }
+  } else if (!((prevElem->value).deletes(elem))){
     newL->next = prevElem->next;
     prevElem->next = newL;
     deleteElements(newL);
-    return newL;
+    return elem.step;
   } else {
-    return NULL;
+    free(newL);
   }
+  return 0;
 }
 
-myList<element>* checkSubstitutionInElemList(myList<element>* currElem, int elemStep, int* bestStep, char* done){
+int checkSubstitutionInElemList(myList<element>* currElem, int elemStep,
+int* bestStep, char* done)
+{
   *done = (*bestStep) == elemStep;
   if (currElem->value.step < elemStep){
     currElem->value.step = elemStep;
     deleteElements(currElem);
+    return elemStep;
   }
-  return currElem;
+  return 0;
 }
 
-myList<element>* firstSearchInElemList(myListHead<element>* myElemList, element elem, char* done,
-int* indToPass, int* bestStep)
+int firstSearchInElemList(myListHead<element>* myElemList, element elem, char* done,
+int* bestStep)
 {
+  char control=0;
   int currInd,currValue,elemStep = 0;
   myList<element>* prevElem = myElemList->first;
   myList<element>* currElem = myElemList->first;
-  if (currElem==NULL){ //null list
-    *done = 1; elem.step=elemStep;
-    myElemList->first = new myList<element>(elem);
-    return NULL;
-  } else {
-    currElem = currElem->next;
-    while (currElem!=NULL){
-      currValue=currElem->value.value;
-      if (currValue < elem.value){
-        firstSearchUpdate(currElem,prevElem,indToPass,bestStep,&elemStep,elem);
-      } else if (currValue > elem.value) { break; }
+  while (currElem!=NULL){
+    currValue=currElem->value.value;
+    if (currValue < elem.value){
+      firstSearchUpdate(currElem,prevElem,bestStep,&elemStep,elem);
+      prevElem = currElem; currElem = currElem->next;
+      control = 1;
+    } else if (currValue > elem.value) { break; }
+    else {
+      currInd = currElem->value.special;
+      if (currInd < elem.special){
+        prevElem = currElem; currElem = currElem->next; control=1;
+      } else if (currInd > elem.special) { break; }
       else {
-        currInd = currElem->value.special;
-        if (currInd < elem.special){
-          prevElem = currElem; currElem = currElem->next;
-        } else if (currInd > elem.special) { break; }
-        else {
-          return checkSubstitutionInElemList(currElem,elemStep,bestStep,done);
-        }
+        return checkSubstitutionInElemList(currElem,elemStep,bestStep,done);
       }
     }
-    *done = elemStep==(*bestStep);
-    elem.step = elemStep;
-    return checkInsertInElemList(prevElem,elem);
   }
+  return checkInsertInElemList(myElemList,prevElem,elem,elemStep,bestStep,done,control);
 }
 
-void handleInsertInElemList(myListHead<element>* myElemList, int val, myListHead<int>* valInds){
-  int indToPass, bestStep=0;
-  char done;
-  myList<element>* elementPlace; 
-  element elem = element(val,-1,valInds->first->value);
-  elementPlace = firstSearchInElemList(myElemList,elem,&done,&indToPass,&bestStep);
-}
-
-int getMaxSizeCommonSubseq(vetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
-  int max = 0;
-  int i, val, size = vet->currSize;
-  myListHead<element>* myElemList = new myListHead<element>();
-  myListHead<int>* valInds;
-  for (i=0;i<size;i++){
-    val = getVetorValue(vet,i);
-    valInds = (*vetMap)[val];
-    handleInsertInElemList(myElemList,val,valInds);
+int handleInsertInElemList(myListHead<element>* myElemList, int val, myList<int>* valInds){
+  int bestStep=0;
+  int maxStep=-1,auxStep=-1;
+  char done=0;
+  while (!done && valInds!=NULL){
+    element elem = element(val,-1,valInds->value);
+    auxStep=firstSearchInElemList(myElemList,elem,&done,&bestStep);
+    maxStep = auxStep>maxStep ? auxStep : maxStep;
+    valInds = valInds->next;
   }
-  return max;
-
+  return maxStep;
 }
+
 
 void exercise2(vetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
-  int max = getMaxSizeCommonSubseq(vet,vetMap);
-  printf("%d\n",max);
+  int maxAux=-1,max = 0;
+  int i, val, size = vet->currSize;
+  myListHead<element>* myElemList = new myListHead<element>();
+  myList<int>* valInds;
+  for (i=0;i<size;i++){
+    val = getVetorValue(vet,i);
+    valInds = (*vetMap)[val]->first;
+    maxAux = handleInsertInElemList(myElemList,val,valInds);
+    max = max<maxAux ? maxAux : max;
+  }
+  printf("%d\n",++max);
 }
 
 
@@ -733,16 +744,16 @@ void exercise2(vetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
 char runExercise2(){
   Global* global = initGlobalEx2Part1();
   storeUserInput(global);
-  printf("Vetor1-Beta:\n");
-  printVetor(global->vet2);
+  /*printf("Vetor1-Beta:\n");
+  printVetor(global->vet2);*/
   global->vet1 = initVetor();
   storeUserInput(global);
   filterFirstArray(global);
-  printf("\nVetor2:\n");
+  /*printf("\nVetor2:\n");
   printVetor(global->vet1);
   printf("Vetor1:\n");
-  printMap(global->vetorMap);
-  //exercise2(global->vet1,global->vetorMap);
+  printMap(global->vetorMap);*/
+  exercise2(global->vet1,global->vetorMap);
   return 0;
 }
 
