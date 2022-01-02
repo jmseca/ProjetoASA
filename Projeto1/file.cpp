@@ -3,6 +3,11 @@
 #include <cstring>
 #include <unordered_map>
 
+
+#include <vector>
+#include <bits/stdc++.h>
+
+
 using namespace std;
 
 #define VETOR_BASE_SIZE 50
@@ -28,12 +33,13 @@ typedef struct {
   long int size;
 } elementArray;
 
+template<class T>
 class myList {
   public:
-    int value;
+    T value;
     myList* next;
 
-    myList(int val){
+    myList(T val){
       value = val;
       next = NULL;
     }
@@ -45,34 +51,57 @@ class myList {
     }
 };
 
+template<class T>
 class myListHead {
   public:
-    myList* first;
-    myList* last;
-
-    myListHead(int value){
-      first = new myList(value);
-      last = first;
-    }
+    myList<T>* first;
+    myList<T>* last;
 
     myListHead(){
       first = NULL; last = NULL;
     }
 
-    void addToList(int val){
+    myListHead(T value){
+      first = new myList<T>(value);
+      last = first;
+    }
+
+    void pushBack(T val){
       if (first == NULL){
-        first = new myList(val);
+        first = new myList<T>(val);
         last = first;
       } else {
-        last->next = new myList(val);
+        last->next = new myList<T>(val);
         last = last->next;
       }
     }
 
-    int pop(char* errorHandler){
+    void insertWithOrder(T val){
+      myList<T>* newL = new myList<T>(val);
+      myList<T>* curr = first;
+      myList<T>* prev = first;
+      if (first==NULL){
+        first = newL;
+      } else {
+        curr = curr->next;
+        while (curr!=NULL){
+          if ((curr->value - val) > 0){
+            break;
+          }
+          prev = curr;
+          curr = curr->next;
+        }
+        prev->next = newL;
+        newL->next = curr;
+      }
+    }
+    
+
+
+    T pop(char* errorHandler){
       *errorHandler = 0;
       if (first!=NULL){
-        int out =  first->value;
+        T out =  first->value;
         first = first->next;
         return out;
       } else {
@@ -82,7 +111,7 @@ class myListHead {
     }
 
     void print(){
-      myList* nextL = first;
+      myList<T>* nextL = first;
       while (nextL!=NULL){
         printf("%d->",nextL->value);
         nextL = nextL->next;
@@ -91,10 +120,10 @@ class myListHead {
 };
 
 typedef struct {
-  vetor* vet;
-  myListHead* mLH;
+  vetor* vet1;
+  vetor* vet2;
   unordered_map<int,char>* mp;
-  int numberOfDifferentValues; /*may cause headaches*/
+  unordered_map<int, myListHead<int>* >* vetorMap;
 } Global;
 
 
@@ -142,7 +171,24 @@ void storeUserInput(Global* global);
 
 short runExercise1();
 
-void exercise1(vetor* vet, int diffValues);
+void exercise1(vetor* vet);
+
+
+void printMap(unordered_map<int, myListHead<int>* > *bom){
+  vector<int> keys;
+  int mapSize = bom->size();
+  int ind,key;
+  keys.reserve(mapSize);
+  for(auto kv : *bom) {
+    keys.push_back(kv.first);
+  }
+  sort(keys.begin(), keys.end(), greater<int>());
+  for (ind=0;ind<mapSize;ind++){
+    key = keys[ind];
+    printf("%d: ",key);
+    (*bom)[key]->print();
+  }
+}
 
 /* VETOR */
 
@@ -193,19 +239,19 @@ int* zeroArray(int size){
 
 Global* initGlobalEx1(){
   Global* global = (Global*) malloc(sizeof(Global));
-  global->vet = initVetor();
+  global->vet1 = initVetor();
+  global->vet2 = NULL;
+  global->vetorMap = NULL;
   global->mp = NULL;
-  global->mLH = NULL;
-  global->numberOfDifferentValues=0;
   return global;
 }
 
 Global* initGlobalEx2Part1(){
   Global* global = (Global*) malloc(sizeof(Global));
-  global->vet = NULL;
+  global->vet1 = NULL;
+  global->vet2 = initVetor();
   global->mp = new unordered_map<int,char>;
-  global->mLH = new myListHead();
-  global->numberOfDifferentValues=0;
+  global->vetorMap = NULL;
   return global;
 }
 
@@ -214,7 +260,7 @@ char isExercise1(Global* global){
 }
 
 char isExercise2Part1(Global* global){
-  return global->vet==NULL;
+  return global->vet1==NULL;
 }
 
 /* ELEMENT*/
@@ -333,7 +379,7 @@ int isValidElement(elementArray* eArr, element* elem, int vetInd, char* success)
 }
 
 
-elementArray* getFinishedSecondElementArray(myListHead* mLH, vetor* vet, int eArrSize){
+elementArray* getFinishedSecondElementArray(myListHead<int>* mLH, vetor* vet, int eArrSize){
   int value,vetInd,binInd;
   char errorHandler,success;
   elementArray* eArr = initElementArray(eArrSize);
@@ -495,19 +541,17 @@ int possibleCutNumber(char** prev, int* prevSize, char* buffer){
 
 void addToVetorByExercise(Global* global,int i,int* prevValue){
   if (isExercise1(global)){
-    global->numberOfDifferentValues++;
-    addToVetor(global->vet,i);
+    addToVetor(global->vet1,i);
   } else if (isExercise2Part1(global)){ 
-    if  ((( i!=(*prevValue) || (global->mLH->first == NULL) ))){
-        global->mLH->addToList(i);
+    if  ((( i!=(*prevValue) || !(global->vet2->currSize) ))){
+        addToVetor(global->vet2,i);
         global->mp->insert({i,0});
         *prevValue = i;
       } 
   }
   else if ((global->mp->find(i) != global->mp->end())){
-    if (((i!=(*prevValue) || !(global->vet->currSize)))){
-      global->numberOfDifferentValues++;
-      addToVetor(global->vet,i);
+    if (((i!=(*prevValue) || !(global->vet1->currSize)))){
+      addToVetor(global->vet1,i);
       (*(global->mp))[i] = 1;
       *prevValue = i;
     }
@@ -545,31 +589,33 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* p
 short runExercise1(){
   Global* global = initGlobalEx1();
   storeUserInput(global);
-  exercise1(global->vet,global->numberOfDifferentValues);
+  exercise1(global->vet1);
   return 0;
 }
 
 
 void filterFirstArray(Global* global){
-  myList* myCurrList = global->mLH->first;
-  while (myCurrList != NULL && !((*(global->mp))[myCurrList->value])){
-    myCurrList = myCurrList->next;
-    global->mLH->first = myCurrList;
-  }
-  if (myCurrList != NULL){
-    int prevValue = myCurrList->value;
-    myList* myPrevList = myCurrList;
-    myCurrList = myCurrList->next;
-    while (myCurrList!=NULL){
-      if ( !((*(global->mp))[myCurrList->value]) || myCurrList->value==prevValue){
-        myCurrList = myCurrList->deleteL(myPrevList);
-      } else {
-        prevValue = myCurrList->value;
-        myPrevList = myCurrList;
-        myCurrList = myCurrList->next;
+  vetor* vet = global->vet2;
+  int size2 = vet->currSize;
+  int val,prevValue;
+  int ind, insertInd=0;
+  char found=0;
+  unordered_map<int, myListHead<int>* >* vetMap = new unordered_map<int, myListHead<int>* >;
+  for (ind=0;ind<size2;ind++){
+    val = getVetorValue(vet,ind);
+    if ((*(global->mp))[val] && (!found || prevValue!=val)){
+      if (vetMap->find(val) == vetMap->end()){
+        (*vetMap)[val] = new myListHead<int>();
       }
-    }
+      (*vetMap)[val]->pushBack(insertInd);
+      prevValue = val;
+      found=1;
+      insertInd++;
+    } 
   }
+  freeVetor(vet);
+  global->vet2=NULL;
+  global->vetorMap = vetMap;
 }
 
 int getIndWithSameValue(vetor* vet, int value, int start){
@@ -586,10 +632,11 @@ int getIndWithSameValue(vetor* vet, int value, int start){
 }
 
 
-void exercise2(myListHead* mLH, vetor* vet,int diffValues){
+void exercise2(vetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
   long int max = 0;
-  elementArray* eArr = getFinishedSecondElementArray(mLH,vet,diffValues);
-  max = getElementArrayMaxValue(eArr);
+  //int size = vetMap->size();
+  //elementArray* eArr = getFinishedSecondElementArray(mLH,vet,size);
+  //max = getElementArrayMaxValue(eArr);
   printf("%ld\n",max);
 }
 
@@ -598,14 +645,16 @@ void exercise2(myListHead* mLH, vetor* vet,int diffValues){
 char runExercise2(){
   Global* global = initGlobalEx2Part1();
   storeUserInput(global);
-  global->vet = initVetor();
+  printf("Vetor1-Beta:\n");
+  printVetor(global->vet2);
+  global->vet1 = initVetor();
   storeUserInput(global);
   filterFirstArray(global);
+  printf("\nVetor2:\n");
+  printVetor(global->vet1);
   printf("Vetor1:\n");
-  global->mLH->print();
-  printf("Vetor2:\n");
-  printVetor(global->vet);
-  exercise2(global->mLH,global->vet,global->numberOfDifferentValues);
+  printMap(global->vetorMap);
+  //exercise2(global->vet1,global->vetorMap);
   return 0;
 }
 
@@ -618,9 +667,9 @@ void printReps(elementArray* eArr){
 
 
 
-void exercise1(vetor* vet, int diffValues){
+void exercise1(vetor* vet){
   long int max=0,hMany;
-  elementArray* elementArr = getFinishedElementArray(vet,diffValues);
+  elementArray* elementArr = getFinishedElementArray(vet,vet->currSize);
   max = getElementArrayMaxValue(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
   printf("%ld %ld\n",max,hMany);
