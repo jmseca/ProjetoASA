@@ -28,9 +28,9 @@ class element {
     long int step;
 
     element(int val){
-      value = 0;
-      step = -1;
-      special = -1;
+      value = val;
+      step = 0;
+      special = 0;
     }
 
     element(){
