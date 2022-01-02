@@ -21,11 +21,36 @@ typedef struct {
    int* arr;
 } vetor;
 
-typedef struct {
-  int value;
-  long int special; /*reps -> P1, ind -> P2*/
-  long int step;
-} element;
+class element {
+  public:
+    int value;
+    long int special; /*reps -> P1, ind -> P2*/
+    long int step;
+
+    element(int val){
+      value = 0;
+      step = -1;
+      special = -1;
+    }
+
+    element(){
+      element(0);
+    }
+
+    element(int val, int stp, int spcl){
+      value = val;
+      step = stp;
+      special = spcl;
+    }
+
+    char deletes(element e2){
+      if(this->step >= e2.step){
+        return (e2.step + (this->special - e2.special -1)) <= this->step;
+      } else {
+        return 0;
+      }
+    }
+};
 
 typedef struct {
   element* arr;
@@ -128,8 +153,6 @@ typedef struct {
 
 
 /*.h stuff*/
-
-element initNullElement();
 
 elementArray* initElementArray(int size);
 
@@ -265,19 +288,6 @@ char isExercise2Part1(Global* global){
 
 /* ELEMENT*/
 
-element initNullElement(){
-  element newVal;
-  newVal.value = 0;
-  return newVal;
-}
-
-element newElementWithValue(int val){
-  element newVal;
-  newVal.value = val;
-  newVal.step=0;
-  newVal.special=0;
-  return newVal;
-}
 
 char elementSameValueSameStep(element e1, element e2){
   return (e1.step == e2.step) && (e1.value == e2.value);
@@ -334,7 +344,7 @@ elementArray* getFinishedElementArray(vetor* vet,int eArrSize){
   int ind,binInd;
   elementArray* elementArr = initElementArray(eArrSize);
   for (ind=0;ind<eArrSize;ind++){
-    element elem = newElementWithValue(getVetorValue(vet,ind));
+    element elem = element(getVetorValue(vet,ind));
     binInd = elementBinarySearch(elementArr,0,elementArr->currSize-1,elem);
     setElementRepsAndStep(elementArr,&elem,binInd);
     handleAddToElementArray(elementArr, elem, binInd,1);
@@ -379,28 +389,6 @@ int isValidElement(elementArray* eArr, element* elem, int vetInd, char* success)
 }
 
 
-elementArray* getFinishedSecondElementArray(myListHead<int>* mLH, vetor* vet, int eArrSize){
-  int value,vetInd,binInd;
-  char errorHandler,success;
-  elementArray* eArr = initElementArray(eArrSize);
-  element elem;
-  while (mLH->first!=NULL){
-    vetInd=-1;
-    value = mLH->pop(&errorHandler); /*errorHandler wont be needed*/
-    elem = newElementWithValue(value);
-    success = 0;
-    while (!success){
-      vetInd = getIndWithSameValue(vet,value,++vetInd);
-      if (vetInd<0) { break; }
-      binInd = isValidElement(eArr,&elem,vetInd,&success);
-
-    }
-    if (vetInd>=0){
-      handleAddToElementArray(eArr,elem,binInd,2);
-    }
-  }
-  return eArr;
-}
 
 
 void printElement(element elem){
@@ -632,12 +620,112 @@ int getIndWithSameValue(vetor* vet, int value, int start){
 }
 
 
+void firstSearchUpdate(myList<element>* currElem, myList<element>* prevElem,
+int* indToPass, int* bestStep, int* elemStep, element elem)
+{
+  int currStep = currElem->value.step;
+  int currInd = currElem->value.special;
+  if ((*bestStep)<currStep || ((*bestStep)==currStep && currInd<(*indToPass))){
+    *bestStep = currStep;
+    *indToPass = currInd;
+  }
+  if ((currStep>elem.step) && (currInd<elem.special)){
+    *elemStep = currStep;
+  }
+  prevElem = currElem;
+  currElem = currElem->next;
+}
+
+void deleteElements(myList<element>* currElem){
+  element elem = currElem->value;
+  myList<element>* aux;
+  while ( ((currElem->next)!=NULL) && (elem.deletes(currElem->next->value))){
+    aux = currElem->next;
+    currElem->next = aux ->next;
+    free(aux);
+  }
+}
+
+myList<element>* checkInsertInElemList(myList<element>* prevElem, element elem){
+  myList<element>* newL;
+  if (!(prevElem->value.deletes(elem))){
+    newL = new myList<element>(elem);
+    newL->next = prevElem->next;
+    prevElem->next = newL;
+    deleteElements(newL);
+    return newL;
+  } else {
+    return NULL;
+  }
+}
+
+myList<element>* checkSubstitutionInElemList(myList<element>* currElem, int elemStep, int* bestStep, char* done){
+  *done = (*bestStep) == elemStep;
+  if (currElem->value.step < elemStep){
+    currElem->value.step = elemStep;
+    deleteElements(currElem);
+  }
+  return currElem;
+}
+
+myList<element>* firstSearchInElemList(myListHead<element>* myElemList, element elem, char* done,
+int* indToPass, int* bestStep)
+{
+  int currInd,currValue,elemStep = 0;
+  myList<element>* prevElem = myElemList->first;
+  myList<element>* currElem = myElemList->first;
+  if (currElem==NULL){ //null list
+    *done = 1; elem.step=elemStep;
+    myElemList->first = new myList<element>(elem);
+    return NULL;
+  } else {
+    currElem = currElem->next;
+    while (currElem!=NULL){
+      currValue=currElem->value.value;
+      if (currValue < elem.value){
+        firstSearchUpdate(currElem,prevElem,indToPass,bestStep,&elemStep,elem);
+      } else if (currValue > elem.value) { break; }
+      else {
+        currInd = currElem->value.special;
+        if (currInd < elem.special){
+          prevElem = currElem; currElem = currElem->next;
+        } else if (currInd > elem.special) { break; }
+        else {
+          return checkSubstitutionInElemList(currElem,elemStep,bestStep,done);
+        }
+      }
+    }
+    *done = elemStep==(*bestStep);
+    elem.step = elemStep;
+    return checkInsertInElemList(prevElem,elem);
+  }
+}
+
+void handleInsertInElemList(myListHead<element>* myElemList, int val, myListHead<int>* valInds){
+  int indToPass, bestStep=0;
+  char done;
+  myList<element>* elementPlace; 
+  element elem = element(val,-1,valInds->first->value);
+  elementPlace = firstSearchInElemList(myElemList,elem,&done,&indToPass,&bestStep);
+}
+
+int getMaxSizeCommonSubseq(vetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
+  int max = 0;
+  int i, val, size = vet->currSize;
+  myListHead<element>* myElemList = new myListHead<element>();
+  myListHead<int>* valInds;
+  for (i=0;i<size;i++){
+    val = getVetorValue(vet,i);
+    valInds = (*vetMap)[val];
+    handleInsertInElemList(myElemList,val,valInds);
+  }
+  return max;
+
+}
+
 void exercise2(vetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
-  long int max = 0;
-  //int size = vetMap->size();
-  //elementArray* eArr = getFinishedSecondElementArray(mLH,vet,size);
-  //max = getElementArrayMaxValue(eArr);
-  printf("%ld\n",max);
+  int max = getMaxSizeCommonSubseq(vet,vetMap);
+  printf("%d\n",max);
 }
 
 
