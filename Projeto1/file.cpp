@@ -3,29 +3,55 @@
 #include <cstring>
 #include <unordered_map>
 
-
-#include <vector>
-#include <bits/stdc++.h>
-
-
 using namespace std;
 
 #define VETOR_BASE_SIZE 50
 #define BUFFER_SIZE 128
-#define MAP_BASE_SIZE 50
 
-/*Structs*/
-typedef struct {
-   long int size;
-   long int currSize;
-   int* arr;
-} vetor;
+// CLASSES ============================
+
+/**
+ * myVetor: vetor de inteiros
+ *  - arr: array com os inteiros
+ *  - size: tamanho disponival na array
+ *  - currSize: espaco ocupado na array
+ */
+class myVetor {
+  public:
+    long int size;
+    long int currSize;
+    int* arr;
+
+  myVetor(){
+    this->arr = (int*) malloc(sizeof(int)*VETOR_BASE_SIZE);
+    this->size = VETOR_BASE_SIZE;
+    this->currSize = 0;
+  }
+
+  int get(int pos){
+    return this->arr[pos];
+  }
+
+  void add(int newVal){
+   if (this->size == this->currSize){
+      this->size*=2;
+      this->arr = (int*) realloc(this->arr,sizeof(int)*(this->size));
+   }
+  this->arr[this->currSize] = newVal;
+  this->currSize++;
+  }
+
+  void freeArr(){
+    free(this->arr);
+  }
+};
+
 
 class element {
   public:
     int value;
     long int special; /*reps -> P1, ind -> P2*/
-    long int step;
+    int step;
 
     element(int val){
       value = val;
@@ -52,15 +78,9 @@ class element {
     }
 
     void print(){
-      printf("{val->%d, step->%ld, special->%ld}\n",value,step,special);
+      printf("{val->%d, step->%d, special->%ld}\n",value,step,special);
     }
 };
-
-typedef struct {
-  element* arr;
-  long int currSize;
-  long int size;
-} elementArray;
 
 template<class T>
 class myList {
@@ -104,169 +124,32 @@ class myListHead {
         last = last->next;
       }
     }
-
-    void insertWithOrder(T val){
-      myList<T>* newL = new myList<T>(val);
-      myList<T>* curr = first;
-      myList<T>* prev = first;
-      if (first==NULL){
-        first = newL;
-      } else {
-        curr = curr->next;
-        while (curr!=NULL){
-          if ((curr->value - val) > 0){
-            break;
-          }
-          prev = curr;
-          curr = curr->next;
-        }
-        prev->next = newL;
-        newL->next = curr;
-      }
-    }
     
-
-
-    T pop(char* errorHandler){
-      *errorHandler = 0;
-      if (first!=NULL){
-        T out =  first->value;
-        first = first->next;
-        return out;
-      } else {
-        *errorHandler = 1;
-        return 0;
-      }
-    }
-
-    void print(){
-      myList<T>* nextL = first;
-      while (nextL!=NULL){
-        printf("%d->",nextL->value);
-        nextL = nextL->next;
-      } printf("\n");
-    }
 };
 
+
+// STRUCTS ============================
+
 typedef struct {
-  vetor* vet1;
-  vetor* vet2;
+  element* arr;
+  long int currSize;
+  long int size;
+} elementArray;
+
+
+typedef struct {
+  myVetor* vet1;
+  myVetor* vet2;
   unordered_map<int,char>* mp;
   unordered_map<int, myListHead<int>* >* vetorMap;
 } Global;
 
-
-/*.h stuff*/
-
-elementArray* initElementArray(int size);
-
-int elementComparator(element e1, element e2);
-
-int elementBinarySearch(elementArray* array, int s, int e, element find);
-
-int removeIfNecessary(elementArray* eArr, element elem, int ind, char exercise);
-
-void shiftRightElementArray(elementArray* eArr,int ind);
-
-void shiftLefElementArray(elementArray* eArr, int ind, int jump);
-
-void handleAddToElementArray(elementArray* eArr, element elem, int ind, char exercise);
-
-void addToElementArray(elementArray* eArr, element elem, int ind);
-
-int getElementArrayMaxValue(elementArray* eArr);
-
-void setElementReps(elementArray* eArr,int ind, element* elem);
-
-void setElementRepsAndStep(elementArray* eArr, element* elem, int ind);
-
-long int numberOfMaxSizeSubseq(elementArray* eArr, int max);
-
-void printElementArray(elementArray* eArr);
-
-int getIndWithSameValue(vetor* vet, int value, int start);
-
-/* Main */
-
-int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind);
-
-int possibleCutNumber(char** prev, int* prevSize, char* buffer);
-
+// needed
 void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* prevValue);
-
-void storeUserInput(Global* global);
-
-short runExercise1();
-
-void exercise1(vetor* vet);
-
-
-void printMap(unordered_map<int, myListHead<int>* > *bom){
-  vector<int> keys;
-  int mapSize = bom->size();
-  int ind,key;
-  keys.reserve(mapSize);
-  for(auto kv : *bom) {
-    keys.push_back(kv.first);
-  }
-  sort(keys.begin(), keys.end(), greater<int>());
-  for (ind=0;ind<mapSize;ind++){
-    key = keys[ind];
-    printf("%d: ",key);
-    (*bom)[key]->print();
-  }
-}
-
-/* VETOR */
-
-vetor* initVetor(){
-   vetor *vet = (vetor*) malloc(sizeof(vetor));
-   vet->arr = (int*) malloc(sizeof(int)*VETOR_BASE_SIZE);
-   vet->size = VETOR_BASE_SIZE;
-   vet->currSize = 0;
-   return vet;
-}
-
-void addToVetor(vetor *vet,int newVal){
-   if (vet->size == vet->currSize){
-      vet->size*=2;
-      vet->arr = (int*) realloc(vet->arr,sizeof(int)*(vet->size));
-   }
-  vet->arr[vet->currSize] = newVal;
-  vet->currSize++;
-}
-
-int getVetorValue(vetor* vet, int pos){
-  return vet->arr[pos];
-}
-
-void printVetor(vetor *vet){ /*Checking if everything is fine*/
-   int i;
-   for (i=0;i<(vet->currSize);i++){
-      printf("%d,",vet->arr[i]);
-   }
-   printf("\n");
-}
-
-void freeVetor(vetor *vet){
-   free(vet->arr);
-   free(vet);
-}
-
-int* zeroArray(int size){
-   int *arr = (int*) malloc(sizeof(int)*size);
-   int i;
-   for(i=0;i<size;i++){
-      arr[i]=0;
-   }
-   return arr;
-}
-
-
 
 Global* initGlobalEx1(){
   Global* global = (Global*) malloc(sizeof(Global));
-  global->vet1 = initVetor();
+  global->vet1 = new myVetor();
   global->vet2 = NULL;
   global->vetorMap = NULL;
   global->mp = NULL;
@@ -276,7 +159,7 @@ Global* initGlobalEx1(){
 Global* initGlobalEx2Part1(){
   Global* global = (Global*) malloc(sizeof(Global));
   global->vet1 = NULL;
-  global->vet2 = initVetor();
+  global->vet2 = new myVetor();
   global->mp = new unordered_map<int,char>;
   global->vetorMap = NULL;
   return global;
@@ -291,7 +174,6 @@ char isExercise2Part1(Global* global){
 }
 
 /* ELEMENT*/
-
 
 char elementSameValueSameStep(element e1, element e2){
   return (e1.step == e2.step) && (e1.value == e2.value);
@@ -333,72 +215,6 @@ int elementBinarySearch(elementArray* array, int s, int e, element find) {
     return elementBinarySearch(array, s, m-1, find);
 }
 
-
-void printElementArray(elementArray* eArr){
-  printf("ArraySize=%ld\n",eArr->currSize);
-  int i = 0;
-  int size = eArr->currSize;
-  for (i=0;i<size;i++){
-    printf("Value=%d\tReps=%ld\tSteps=%ld\n",eArr->arr[i].value,eArr->arr[i].special,eArr->arr[i].step);
-    printf("|\n");
-  }
-}
-
-elementArray* getFinishedElementArray(vetor* vet,int eArrSize){
-  int ind,binInd;
-  elementArray* elementArr = initElementArray(eArrSize);
-  for (ind=0;ind<eArrSize;ind++){
-    element elem = element(getVetorValue(vet,ind));
-    binInd = elementBinarySearch(elementArr,0,elementArr->currSize-1,elem);
-    setElementRepsAndStep(elementArr,&elem,binInd);
-    handleAddToElementArray(elementArr, elem, binInd,1);
-  }
-  return elementArr;
-}
-
-void handleAddToElementArray(elementArray* eArr, element elem, int ind, char exercise){
-  int removed = removeIfNecessary(eArr,elem,ind, exercise);
-  if (removed!=-1){
-    if (!removed){
-      shiftRightElementArray(eArr,ind);
-    }
-    addToElementArray(eArr,elem,ind);
-    if (removed>1){
-      shiftLefElementArray(eArr,ind,removed-1);
-    }
-  }
-}
-
-int isValidElement(elementArray* eArr, element* elem, int vetInd, char* success){
-  int binInd,auxInd,baseStep;
-  binInd = elementBinarySearch(eArr,0,eArr->currSize-1,*elem);
-  if (!binInd){
-    *success = 1;
-    elem->step = 0;
-  } else {
-    *success = 0;
-    auxInd = binInd-1;
-    baseStep = eArr->arr[auxInd].step;
-    while (auxInd>=0 && eArr->arr[auxInd].step==baseStep){
-      if (eArr->arr[auxInd].special < vetInd){
-        *success=1;
-        elem->step = eArr->arr[(binInd-1)].step+1;
-        break;
-      }
-      auxInd--;
-    }
-  }
-  elem->special = vetInd;
-  return binInd;
-}
-
-
-
-
-void printElement(element elem){
-  printf("Value=%d\tReps=%ld\tSteps=%ld\n",elem.value,elem.special,elem.step);
-}
-
 void setElementReps(elementArray* eArr,int ind, element* elem){
   if (!ind){
     elem->special=1;
@@ -413,11 +229,6 @@ void setElementReps(elementArray* eArr,int ind, element* elem){
       indElement = eArr->arr[ind-1];
     }
   }
-}
-
-void setElementRepsAndStep(elementArray* eArr, element* elem, int ind){
-  elem->step = !ind ? 0 : eArr->arr[ind-1].step +1; 
-  setElementReps(eArr,ind,elem);
 }
 
 
@@ -461,6 +272,63 @@ void addToElementArray(elementArray* eArr, element elem, int ind){
   eArr->arr[ind] = elem;
   eArr->currSize++;
 }
+
+void handleAddToElementArray(elementArray* eArr, element elem, int ind, char exercise){
+  int removed = removeIfNecessary(eArr,elem,ind, exercise);
+  if (removed!=-1){
+    if (!removed){
+      shiftRightElementArray(eArr,ind);
+    }
+    addToElementArray(eArr,elem,ind);
+    if (removed>1){
+      shiftLefElementArray(eArr,ind,removed-1);
+    }
+  }
+}
+
+void setElementRepsAndStep(elementArray* eArr, element* elem, int ind){
+  elem->step = !ind ? 0 : eArr->arr[ind-1].step +1; 
+  setElementReps(eArr,ind,elem);
+}
+
+elementArray* getFinishedElementArray(myVetor* vet,int eArrSize){
+  int ind,binInd;
+  elementArray* elementArr = initElementArray(eArrSize);
+  for (ind=0;ind<eArrSize;ind++){
+    element elem = element( vet->get(ind) );
+    binInd = elementBinarySearch(elementArr,0,elementArr->currSize-1,elem);
+    setElementRepsAndStep(elementArr,&elem,binInd);
+    handleAddToElementArray(elementArr, elem, binInd,1);
+  }
+  return elementArr;
+}
+
+
+
+int isValidElement(elementArray* eArr, element* elem, int vetInd, char* success){
+  int binInd,auxInd,baseStep;
+  binInd = elementBinarySearch(eArr,0,eArr->currSize-1,*elem);
+  if (!binInd){
+    *success = 1;
+    elem->step = 0;
+  } else {
+    *success = 0;
+    auxInd = binInd-1;
+    baseStep = eArr->arr[auxInd].step;
+    while (auxInd>=0 && eArr->arr[auxInd].step==baseStep){
+      if (eArr->arr[auxInd].special < vetInd){
+        *success=1;
+        elem->step = eArr->arr[(binInd-1)].step+1;
+        break;
+      }
+      auxInd--;
+    }
+  }
+  elem->special = vetInd;
+  return binInd;
+}
+
+
 
 long int numberOfMaxSizeSubseq(elementArray* eArr, int max){
   int ind = eArr->currSize-1;
@@ -533,17 +401,17 @@ int possibleCutNumber(char** prev, int* prevSize, char* buffer){
 
 void addToVetorByExercise(Global* global,int i,int* prevValue){
   if (isExercise1(global)){
-    addToVetor(global->vet1,i);
+    global->vet1->add(i);
   } else if (isExercise2Part1(global)){ 
     if  ((( i!=(*prevValue) || !(global->vet2->currSize) ))){
-        addToVetor(global->vet2,i);
+        global->vet2->add(i);
         global->mp->insert({i,0});
         *prevValue = i;
       } 
   }
   else if ((global->mp->find(i) != global->mp->end())){
     if (((i!=(*prevValue) || !(global->vet1->currSize)))){
-      addToVetor(global->vet1,i);
+      global->vet1->add(i);
       (*(global->mp))[i] = 1;
       *prevValue = i;
     }
@@ -578,6 +446,14 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* p
   }
 }
 
+void exercise1(myVetor* vet){
+  long int max=0,hMany;
+  elementArray* elementArr = getFinishedElementArray(vet,vet->currSize);
+  max = getElementArrayMaxValue(elementArr);
+  hMany = numberOfMaxSizeSubseq(elementArr,max);
+  printf("%ld %ld\n",max,hMany);
+}
+
 short runExercise1(){
   Global* global = initGlobalEx1();
   storeUserInput(global);
@@ -587,14 +463,14 @@ short runExercise1(){
 
 
 void filterFirstArray(Global* global){
-  vetor* vet = global->vet2;
+  myVetor* vet = global->vet2;
   int size2 = vet->currSize;
   int val,prevValue;
   int ind, insertInd=0;
   char found=0;
   unordered_map<int, myListHead<int>* >* vetMap = new unordered_map<int, myListHead<int>* >;
   for (ind=0;ind<size2;ind++){
-    val = getVetorValue(vet,ind);
+    val = vet->get(ind);
     if ((*(global->mp))[val] && (!found || prevValue!=val)){
       if (vetMap->find(val) == vetMap->end()){
         (*vetMap)[val] = new myListHead<int>();
@@ -605,22 +481,10 @@ void filterFirstArray(Global* global){
       insertInd++;
     } 
   }
-  freeVetor(vet);
+  vet->freeArr();
+  free(vet);
   global->vet2=NULL;
   global->vetorMap = vetMap;
-}
-
-int getIndWithSameValue(vetor* vet, int value, int start){
-  int size = vet->currSize;
-  if (start >= size){
-    return -1;
-  }
-  for (;start<size;start++){
-    if (vet->arr[start] == value){
-      return start;
-    }
-  }
-  return -2; /*Erro grave*/
 }
 
 
@@ -725,13 +589,13 @@ int handleInsertInElemList(myListHead<element>* myElemList, int val, myList<int>
 }
 
 
-void exercise2(vetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
+void exercise2(myVetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
   int maxAux=-1,max = 0;
   int i, val, size = vet->currSize;
   myListHead<element>* myElemList = new myListHead<element>();
   myList<int>* valInds;
   for (i=0;i<size;i++){
-    val = getVetorValue(vet,i);
+    val = vet->get(i);
     valInds = (*vetMap)[val]->first;
     maxAux = handleInsertInElemList(myElemList,val,valInds);
     max = max<maxAux ? maxAux : max;
@@ -744,38 +608,15 @@ void exercise2(vetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
 char runExercise2(){
   Global* global = initGlobalEx2Part1();
   storeUserInput(global);
-  /*printf("Vetor1-Beta:\n");
-  printVetor(global->vet2);*/
-  global->vet1 = initVetor();
+  global->vet1 = new myVetor();
   storeUserInput(global);
   filterFirstArray(global);
-  /*printf("\nVetor2:\n");
-  printVetor(global->vet1);
-  printf("Vetor1:\n");
-  printMap(global->vetorMap);*/
   exercise2(global->vet1,global->vetorMap);
   return 0;
 }
 
-void printReps(elementArray* eArr){ 
-  int i, size = eArr->currSize;
-  for (i=0;i<size;i++){
-    printf("%d(s-%ld,r-%ld),",eArr->arr[i].value,eArr->arr[i].step,eArr->arr[i].special);
-  } printf("\n");
-}
 
-
-
-void exercise1(vetor* vet){
-  long int max=0,hMany;
-  elementArray* elementArr = getFinishedElementArray(vet,vet->currSize);
-  max = getElementArrayMaxValue(elementArr);
-  hMany = numberOfMaxSizeSubseq(elementArr,max);
-  printf("%ld %ld\n",max,hMany);
-}
-
-
-
+// MAIN ===============================
 int main(){
   short check;
   int exercise;
