@@ -3,6 +3,8 @@
 #include <cstring>
 #include <unordered_map>
 
+#include<bits/stdc++.h>
+
 using namespace std;
 
 #define VETOR_BASE_SIZE 50
@@ -50,8 +52,8 @@ class myVetor {
 class element {
   public:
     int value;
-    long int special; /*reps -> P1, ind -> P2*/
-    int step;
+    long int special; /*Y -> P1, indices -> P2*/
+    int step; /*X -> P1, Z -> P2*/
 
     element(int val){
       value = val;
@@ -215,6 +217,8 @@ int elementBinarySearch(elementArray* array, int s, int e, element find) {
     return elementBinarySearch(array, s, m-1, find);
 }
 
+
+/* Defines Y for given element*/
 void setElementReps(elementArray* eArr,int ind, element* elem){
   if (!ind){
     elem->special=1;
@@ -365,6 +369,7 @@ void storeUserInput(Global* global){
   }
 }
 
+/*responsible for joining a number, cut in half by fgets*/
 int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind){
   int prevInd;
   int availableSize;
@@ -386,6 +391,7 @@ int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind){
   return atoi(*prev);
 }
 
+/*fgets may cut a number in half, checks if it has happened*/
 int possibleCutNumber(char** prev, int* prevSize, char* buffer){
   short ind2;
   char c;
@@ -461,7 +467,7 @@ short runExercise1(){
   return 0;
 }
 
-
+/*Filters V1 and transforms it into a Hash Table*/
 void filterFirstArray(Global* global){
   myVetor* vet = global->vet2;
   int size2 = vet->currSize;
@@ -618,6 +624,7 @@ char runExercise2(){
 
 // MAIN ===============================
 int main(){
+  clock_t initClock = clock();
   short check;
   int exercise;
   do {
@@ -635,5 +642,7 @@ int main(){
       return -1;
     }
   }
+  clock_t timeClock = clock() - initClock;
+  printf("%ld\n",timeClock);
   return 0;
 }

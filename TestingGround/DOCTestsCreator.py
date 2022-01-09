@@ -1,64 +1,94 @@
 import random as ra
 
 
-# Ordenadas crescente
-OCTestId = "OC"
-n=0
-sizes = [10**2,10**3,10**4,10**5,10**6,10**7]
-sizeStr = ["10_2","10_3","10_4","10_5","10_6","10_7"]
-types = ["one","two","random"]
+mydir = "DOCTests/"
+base=100
+delta=100
+num=100
+sizes = [base+(n*delta) for n in range(num)]
+sizeStr = [str(n) for n in range(num)]
 
+okok = len(sizeStr)
+for i in range(okok):
+  if len(sizeStr[i])==1:
+    sizeStr[i]='0'+sizeStr[i]
+
+# Random for Ex2
+ID='Ex2-'
+n=0
+for size in sizes:
+  print("Vamos no size="+sizeStr[n])
+  mystr=''
+  for i in range(size):
+    mystr+=(str(ra.randint(0,size))+" ")
+  mystr+='\n'
+  for i in range(size):
+    mystr+=(str(ra.randint(0,size))+" ")
+  mystr+='\n'
+  f = open(mydir+ID+sizeStr[n]+".in","w")
+  f.write("2\n"+mystr)
+  f.close()
+  n+=1
+
+
+asas #remove to run tests1
+
+# Ordenadas crescente
+ID = "OC-"
 previous=0
-for type in types:
-  print("type="+type)
-  n=0
-  for size in sizes:
-    mystr=''
-    if type=='one':
-      for i in range(size):
-        mystr+=(str(i)+" ")
-    elif type=="two":
-      for i in range(size):
-        mystr+=(str(i*2)+" ")
-    else:
-      for i in range(size):
-        rint = ra.randint(1,5)
-        previous+=rint
-        mystr+=(str(previous)+" ")
-    f = open(OCTestId+type+sizeStr[n]+".in","w")
-    f.write("1\n"+mystr)
-    f.close()
-    n+=1
+n=0
+for size in sizes:
+  print("Vamos no size="+sizeStr[n])
+  mystr=''
+  for i in range(size):
+    mystr+=(str(i)+" ")
+  f = open(mydir+ID+sizeStr[n]+".in","w")
+  f.write("1\n"+mystr)
+  f.close()
+  n+=1
 
 
 
 # Ordenadas decrescente
-DCTestId="DC"
-skip=0
-previous=0
-for type in types:
-  print("type="+type)
-  n=0
-  for size in sizes:
-    mystr=''
-    if type=='one':
-      for i in range(size,0,-1):
-        mystr+=(str(i)+" ")
-    elif type=="two":
-      for i in range(size,0,-1):
-        mystr+=(str(i*2)+" ")
-    else:
-      skip=1
-    if not(skip):
-      f = open(DCTestId+type+sizeStr[n]+".in","w")
-      f.write("1\n"+mystr)
-      f.close()
-      n+=1
+ID="DC-"
+n=0
+for size in sizes:
+  print("Vamos no size="+sizeStr[n])
+  mystr=''
+  for i in range(size,0,-1):
+    mystr+=(str(i)+" ")
+  f = open(mydir+ID+sizeStr[n]+".in","w")
+  f.write("1\n"+mystr)
+  f.close()
+  n+=1
 
 
 
-# Random
+# Random 1 - Concentrado
+ID="RC-"
+n=0
+for size in sizes:
+  print("Vamos no size="+sizeStr[n])
+  mystr=''
+  for i in range(size):
+    mystr+=(str(ra.randint(0,round(size/4)))+" ")
+  f = open(mydir+ID+sizeStr[n]+".in","w")
+  f.write("1\n"+mystr)
+  f.close()
+  n+=1
 
+# Random 2 - Disperso
+ID="RD-"
+n=0
+for size in sizes:
+  print("Vamos no size="+sizeStr[n])
+  mystr=''
+  for i in range(size):
+    mystr+=(str(ra.randint(0,(size*4)))+" ")
+  f = open(mydir+ID+sizeStr[n]+".in","w")
+  f.write("1\n"+mystr)
+  f.close()
+  n+=1
 
 
 # Tests by me
