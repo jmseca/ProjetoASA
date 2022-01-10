@@ -622,7 +622,6 @@ char runExercise2(){
 
 // MAIN ===============================
 int main(){
-  clock_t initClock = clock();
   short check;
   int exercise;
   do {
@@ -640,7 +639,5 @@ int main(){
       return -1;
     }
   }
-  clock_t timeClock = clock() - initClock;
-  printf("%ld\n",timeClock);
   return 0;
 }
