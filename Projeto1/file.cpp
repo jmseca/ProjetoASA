@@ -10,12 +10,6 @@ using namespace std;
 
 // CLASSES ============================
 
-/**
- * myVetor: vetor de inteiros
- *  - arr: array com os inteiros
- *  - size: tamanho disponival na array
- *  - currSize: espaco ocupado na array
- */
 class myVetor {
   public:
     long int size;
@@ -45,7 +39,6 @@ class myVetor {
     free(this->arr);
   }
 };
-
 
 class element {
   public:
@@ -77,9 +70,15 @@ class element {
       }
     }
 
-    void print(){
-      printf("{val->%d, step->%d, special->%ld}\n",value,step,special);
+    char sameValueSameStep(element e2){
+      return (this->step == e2.step) && (this->value == e2.value);
     }
+
+    int elementComparator(element e2){
+      int out = e2.value - this->value;
+      return !out ? 1 : out;
+    }
+
 };
 
 template<class T>
@@ -136,7 +135,7 @@ typedef struct {
   long int size;
 } elementArray;
 
-
+// Global: Stores data structures that will receive input data
 typedef struct {
   myVetor* vet1;
   myVetor* vet2;
@@ -147,6 +146,11 @@ typedef struct {
 // needed
 void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* prevValue);
 
+/**
+ * @brief Inits Global struct for exercise1
+ * 
+ * @return pointer to Global created 
+ */
 Global* initGlobalEx1(){
   Global* global = (Global*) malloc(sizeof(Global));
   global->vet1 = new myVetor();
@@ -156,6 +160,11 @@ Global* initGlobalEx1(){
   return global;
 }
 
+/**
+ * @brief Inits Global struct for exercise2
+ * 
+ * @return Global* 
+ */
 Global* initGlobalEx2Part1(){
   Global* global = (Global*) malloc(sizeof(Global));
   global->vet1 = NULL;
@@ -165,20 +174,32 @@ Global* initGlobalEx2Part1(){
   return global;
 }
 
+/**
+ * @brief Checks if 'global' is for exercise1
+ * 
+ * @param global 
+ * @return 1 -> true, 0 -> false 
+ */
 char isExercise1(Global* global){
   return global->mp==NULL;
 }
 
+/**
+ * @brief Checks if 'global' is for exercise2
+ * 
+ * @param global 
+ * @return 1 -> true, 0 -> false 
+ */
 char isExercise2Part1(Global* global){
   return global->vet1==NULL;
 }
 
-/* ELEMENT*/
-
-char elementSameValueSameStep(element e1, element e2){
-  return (e1.step == e2.step) && (e1.value == e2.value);
-}
-
+/**
+ * @brief Inits an elementArray
+ * 
+ * @param siz 
+ * @return pointer to elementArray created
+ */
 elementArray* initElementArray(int siz){
   elementArray* eArr = (elementArray*) malloc(sizeof(elementArray));
   element* newArr = (element*) malloc(sizeof(element)*siz);
@@ -188,25 +209,32 @@ elementArray* initElementArray(int siz){
   return eArr;
 } 
 
-
-int elementComparator(element e1, element e2){
-  int out = e1.value - e2.value;
-  return !out ? 1 : out;
-}
-
-int getElementArrayMaxValue(elementArray* eArr){
+/**
+ * @brief Returns the final X value in exercise 1
+ * 
+ * @param eArr 
+ */
+int getElementArrayMaxStep(elementArray* eArr){
   int size = eArr->currSize;
   return !size ? 0: eArr->arr[(size-1)].step +1;
 }
 
-
+/**
+ * @brief binary search of element in an elementArray
+ * 
+ * @param array
+ * @param s start limit of the search
+ * @param e end limit of the search
+ * @param find 
+ * @return Index where 'find' should be at
+ */
 int elementBinarySearch(elementArray* array, int s, int e, element find) {
   int m,comp;
   if ( (e==-1) || find.value > array->arr[e].value){
     return e+1;
   }
   m = (s + e)/2;
-  comp = elementComparator(array->arr[m],find);
+  comp = find.elementComparator(array->arr[m]);
   if (!comp)
     return m;
   else if (comp<0)  
@@ -216,7 +244,13 @@ int elementBinarySearch(elementArray* array, int s, int e, element find) {
 }
 
 
-/* Defines Y for given element*/
+/**
+ * @brief Defines Y for given element
+ * 
+ * @param eArr 
+ * @param ind 
+ * @param elem 
+ */
 void setElementReps(elementArray* eArr,int ind, element* elem){
   if (!ind){
     elem->special=1;
@@ -233,16 +267,23 @@ void setElementReps(elementArray* eArr,int ind, element* elem){
   }
 }
 
-
-int removeIfNecessary(elementArray* eArr, element elem, int ind, char exercise){
+/**
+ * @brief Checks if there are unuseful elements in the elementArray, starting at index 'ind'
+ * 
+ * @param eArr 
+ * @param elem 
+ * @param ind 
+ * @return Number of elements that need to be removed
+ */
+int removeIfNecessary(elementArray* eArr, element elem, int ind){
   int removing=0;
   if (ind != eArr->currSize && eArr->currSize!=0){
     while ( (eArr->arr[ind].step < elem.step) && (ind < eArr->currSize)){
       removing++;
       ind++;
     }
-    if (!removing && elementSameValueSameStep(elem,eArr->arr[ind])){
-      eArr->arr[ind].special += exercise==1 ? elem.special : 0;
+    if (!removing && elem.sameValueSameStep(eArr->arr[ind])){
+      eArr->arr[ind].special += elem.special;
       return -1;
     }
     eArr->currSize -= removing==1 ? 1 : 0;
@@ -252,6 +293,13 @@ int removeIfNecessary(elementArray* eArr, element elem, int ind, char exercise){
   }
 }
 
+/**
+ * @brief Shifts all the elements in the elementArray 1 position
+ * to the right, starting on index 'ind'
+ * 
+ * @param eArr 
+ * @param ind 
+ */
 void shiftRightElementArray(elementArray* eArr,int ind){
   int size = eArr->currSize;
   while (size>ind){
@@ -260,6 +308,14 @@ void shiftRightElementArray(elementArray* eArr,int ind){
   }
 }
 
+/**
+ * @brief Shifts all the elements in the elementArray 'jump' position
+ * to the right, starting on index 'ind'
+ * 
+ * @param eArr 
+ * @param ind 
+ * @param jump 
+ */
 void shiftLefElementArray(elementArray* eArr, int ind, int jump){
   int oldInd;
   ind++;
@@ -270,13 +326,28 @@ void shiftLefElementArray(elementArray* eArr, int ind, int jump){
   eArr->currSize-=(jump+1);
 }
 
+/**
+ * @brief Adds an element to the elementArray at index 'ind'
+ * 
+ * @param eArr 
+ * @param elem 
+ * @param ind 
+ */
 void addToElementArray(elementArray* eArr, element elem, int ind){
   eArr->arr[ind] = elem;
   eArr->currSize++;
 }
 
-void handleAddToElementArray(elementArray* eArr, element elem, int ind, char exercise){
-  int removed = removeIfNecessary(eArr,elem,ind, exercise);
+/**
+ * @brief Decides if an element should be added to the elementArray. If added,
+ * checks if there are elements to be removed and adjusts the elementArray. 
+ * 
+ * @param eArr 
+ * @param elem 
+ * @param ind 
+ */
+void handleAddToElementArray(elementArray* eArr, element elem, int ind){
+  int removed = removeIfNecessary(eArr,elem,ind);
   if (removed!=-1){
     if (!removed){
       shiftRightElementArray(eArr,ind);
@@ -288,11 +359,26 @@ void handleAddToElementArray(elementArray* eArr, element elem, int ind, char exe
   }
 }
 
+/**
+ * @brief Sets the element Reps (Y) and Step (X), considering the values 
+ * with index < 'ind'
+ * 
+ * @param eArr 
+ * @param elem 
+ * @param ind index where element can be placed
+ */
 void setElementRepsAndStep(elementArray* eArr, element* elem, int ind){
   elem->step = !ind ? 0 : eArr->arr[ind-1].step +1; 
   setElementReps(eArr,ind,elem);
 }
 
+/**
+ * @brief Iterates through 'vet' and returns the final elementArray
+ * 
+ * @param vet Sequence received from input (Exercise1)
+ * @param eArrSize 
+ * @return elementArray* 
+ */
 elementArray* getFinishedElementArray(myVetor* vet,int eArrSize){
   int ind,binInd;
   elementArray* elementArr = initElementArray(eArrSize);
@@ -300,38 +386,18 @@ elementArray* getFinishedElementArray(myVetor* vet,int eArrSize){
     element elem = element( vet->get(ind) );
     binInd = elementBinarySearch(elementArr,0,elementArr->currSize-1,elem);
     setElementRepsAndStep(elementArr,&elem,binInd);
-    handleAddToElementArray(elementArr, elem, binInd,1);
+    handleAddToElementArray(elementArr, elem, binInd);
   }
   return elementArr;
 }
 
-
-
-int isValidElement(elementArray* eArr, element* elem, int vetInd, char* success){
-  int binInd,auxInd,baseStep;
-  binInd = elementBinarySearch(eArr,0,eArr->currSize-1,*elem);
-  if (!binInd){
-    *success = 1;
-    elem->step = 0;
-  } else {
-    *success = 0;
-    auxInd = binInd-1;
-    baseStep = eArr->arr[auxInd].step;
-    while (auxInd>=0 && eArr->arr[auxInd].step==baseStep){
-      if (eArr->arr[auxInd].special < vetInd){
-        *success=1;
-        elem->step = eArr->arr[(binInd-1)].step+1;
-        break;
-      }
-      auxInd--;
-    }
-  }
-  elem->special = vetInd;
-  return binInd;
-}
-
-
-
+/**
+ * @brief Returns the number of max size subsequences (Y)
+ * 
+ * @param eArr elementArray after iterating through Exercise1 subsequence 
+ * @param max max size of a subsequence (X)
+ * @return long int
+ */
 long int numberOfMaxSizeSubseq(elementArray* eArr, int max){
   int ind = eArr->currSize-1;
   if (ind==-1) { return 0; }
@@ -348,7 +414,11 @@ long int numberOfMaxSizeSubseq(elementArray* eArr, int max){
   return out;
 }
 
-
+/**
+ * @brief Stores user input in 'global'
+ * 
+ * @param global 
+ */
 void storeUserInput(Global* global){
   char* check;
   char buffer[BUFFER_SIZE];
@@ -367,7 +437,36 @@ void storeUserInput(Global* global){
   }
 }
 
-/*responsible for joining a number, cut in half by fgets*/
+/**
+ * @brief fgets may cut a number in half, checks if it has happened
+ * 
+ * @param prev stores the string of the cut number
+ * @param prevSize size of prev string (!= size of number string)
+ * @param buffer 
+ * @return index where cut number starts in buffer
+ */
+int possibleCutNumber(char** prev, int* prevSize, char* buffer){
+  short ind2;
+  char c;
+  ind2 = BUFFER_SIZE-3; 
+  while ((c=buffer[ind2])!=' ' && c!='\0'){
+    ind2--;
+  }
+  *prevSize = (BUFFER_SIZE-ind2-2)*2; 
+  *prev = (char*) malloc((*prevSize)*sizeof(char));
+  strcpy(*prev,&buffer[++(ind2)]);
+  return ind2;
+}
+
+/**
+ * @brief Responsible for joining a number, cut in half by fgets
+ * 
+ * @param prev contains the string of the cut number from last fgets
+ * @param prevSize size of prev
+ * @param buffer 
+ * @param ind 
+ * @return the number cut in half
+ */
 int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind){
   int prevInd;
   int availableSize;
@@ -389,20 +488,14 @@ int getCutNumber(char** prev, int* prevSize, char* buffer, short* ind){
   return atoi(*prev);
 }
 
-/*fgets may cut a number in half, checks if it has happened*/
-int possibleCutNumber(char** prev, int* prevSize, char* buffer){
-  short ind2;
-  char c;
-  ind2 = BUFFER_SIZE-3; 
-  while ((c=buffer[ind2])!=' ' && c!='\0'){
-    ind2--;
-  }
-  *prevSize = (BUFFER_SIZE-ind2-2)*2; 
-  *prev = (char*) malloc((*prevSize)*sizeof(char));
-  strcpy(*prev,&buffer[++(ind2)]);
-  return ind2;
-}
-
+/**
+ * @brief Adds a new value to the respective vector, depending on
+ * which exercise and part too
+ * 
+ * @param global 
+ * @param i new value
+ * @param prevValue previously added value
+ */
 void addToVetorByExercise(Global* global,int i,int* prevValue){
   if (isExercise1(global)){
     global->vet1->add(i);
@@ -423,7 +516,15 @@ void addToVetorByExercise(Global* global,int i,int* prevValue){
 }
 
 
-
+/**
+ * @brief Parses the input received in 'buffer'
+ * 
+ * @param global 
+ * @param buffer 
+ * @param prev contains the string of the cut number from last fgets
+ * @param prevSize prev size
+ * @param prevValue Last value added to a vector
+ */
 void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* prevValue){
   char c;
   char read = 0;
@@ -450,22 +551,38 @@ void parseInput(Global* global, char* buffer, char** prev, int* prevSize, int* p
   }
 }
 
+/**
+ * @brief Iterates through the Subsequence
+ * and finds and prints the wanted values, X and Y
+ * 
+ * @param vet exercise1 Subsequence
+ */
 void exercise1(myVetor* vet){
   long int max=0,hMany;
   elementArray* elementArr = getFinishedElementArray(vet,vet->currSize);
-  max = getElementArrayMaxValue(elementArr);
+  max = getElementArrayMaxStep(elementArr);
   hMany = numberOfMaxSizeSubseq(elementArr,max);
   printf("%ld %ld\n",max,hMany);
 }
 
-short runExercise1(){
+/**
+ * @brief Starts Running Exercise1
+ * 
+ */
+void runExercise1(){
   Global* global = initGlobalEx1();
   storeUserInput(global);
   exercise1(global->vet1);
-  return 0;
 }
 
-/*Filters V1 and transforms it into a Hash Table*/
+
+// EXERCISE 2 =========================
+
+/**
+ * @brief Filters first subsequence (V1) and transforms it into a Hash Table
+ * 
+ * @param global 
+ */
 void filterFirstArray(Global* global){
   myVetor* vet = global->vet2;
   int size2 = vet->currSize;
@@ -491,7 +608,17 @@ void filterFirstArray(Global* global){
   global->vetorMap = vetMap;
 }
 
-
+/**
+ * @brief Variable chenges while running firstSearchInElemList, 
+ * when there hasn't been found an element whose value is greater or equal 
+ * to the one studying
+ * 
+ * @param currElem current element while looping in the element List
+ * @param prevElem previous element while looping in the element List
+ * @param bestStep 
+ * @param elemStep 
+ * @param elem element studying
+ */
 void firstSearchUpdate(myList<element>* currElem, myList<element>* prevElem,
 int* bestStep, int* elemStep, element elem)
 {
@@ -505,6 +632,12 @@ int* bestStep, int* elemStep, element elem)
   }
 }
 
+/**
+ * @brief If there are unwanted elements in the element List 'currElem',
+ * deletes them
+ * 
+ * @param currElem 
+ */
 void deleteElements(myList<element>* currElem){
   element elem = currElem->value;
   myList<element>* aux;
@@ -515,6 +648,18 @@ void deleteElements(myList<element>* currElem){
   }
 }
 
+/**
+ * @brief Check if 'elem' should be added in the element List
+ * 
+ * @param myElist element List
+ * @param prevElem 
+ * @param elem element studying
+ * @param elemStep element step if added
+ * @param bestStep best possible step found
+ * @param done 
+ * @param control controls the function flow
+ * @return 0 -> not added, element step -> added
+ */
 int checkInsertInElemList(myListHead<element>* myElist, myList<element>* prevElem,
 element elem, int elemStep, int* bestStep, char* done, char control)
 {
@@ -540,6 +685,15 @@ element elem, int elemStep, int* bestStep, char* done, char control)
   return 0;
 }
 
+/**
+ * @brief checks if new element can substitute same element in element List
+ * 
+ * @param currElem 
+ * @param elemStep 
+ * @param bestStep 
+ * @param done 
+ * @return 0 -> not added, element step -> added
+ */
 int checkSubstitutionInElemList(myList<element>* currElem, int elemStep,
 int* bestStep, char* done)
 {
@@ -552,6 +706,15 @@ int* bestStep, char* done)
   return 0;
 }
 
+/**
+ * @brief searches for a place for 'elem' in the element List
+ * 
+ * @param myElemList element List
+ * @param elem 
+ * @param done 
+ * @param bestStep 
+ * @return int 
+ */
 int firstSearchInElemList(myListHead<element>* myElemList, element elem, char* done,
 int* bestStep)
 {
@@ -579,6 +742,15 @@ int* bestStep)
   return checkInsertInElemList(myElemList,prevElem,elem,elemStep,bestStep,done,control);
 }
 
+/**
+ * @brief Checks if 'val' should be added to the element List and how many times, 
+ * depending on the index's of the value in V1
+ * 
+ * @param myElemList element List
+ * @param val 
+ * @param valInds index's of the value in V1
+ * @return maxStep found (Z)
+ */
 int handleInsertInElemList(myListHead<element>* myElemList, int val, myList<int>* valInds){
   int bestStep=0;
   int maxStep=-1,auxStep=-1;
@@ -592,7 +764,13 @@ int handleInsertInElemList(myListHead<element>* myElemList, int val, myList<int>
   return maxStep;
 }
 
-
+/**
+ * @brief Iterates through the Subsequences
+ * and finds and prints the wanted value, Z
+ * 
+ * @param vet Second Subsequence (V2)
+ * @param vetMap First Subsequence (V1)
+ */
 void exercise2(myVetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
   int maxAux=-1,max = 0;
   int i, val, size = vet->currSize;
@@ -608,15 +786,18 @@ void exercise2(myVetor* vet, unordered_map<int,myListHead<int>* >* vetMap){
 }
 
 
-
-char runExercise2(){
+/**
+ * @brief Starts running exercise 2
+ * 
+ * @return char 
+ */
+void runExercise2(){
   Global* global = initGlobalEx2Part1();
   storeUserInput(global);
   global->vet1 = new myVetor();
   storeUserInput(global);
   filterFirstArray(global);
   exercise2(global->vet1,global->vetorMap);
-  return 0;
 }
 
 
@@ -631,13 +812,9 @@ int main(){
     }
   } while (exercise!=1 && exercise!=2);
   if (exercise==1){
-    if(runExercise1()==-1){
-      return -1;
-    }
+    runExercise1();
   } else {
-    if( runExercise2()==-1 ){
-      return -1;
-    }
+    runExercise2();
   }
   return 0;
 }
