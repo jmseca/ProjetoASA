@@ -3,8 +3,6 @@
 #include <cstring>
 #include <unordered_map>
 
-#include<bits/stdc++.h>
-
 using namespace std;
 
 #define VETOR_BASE_SIZE 50
