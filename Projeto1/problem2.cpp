@@ -23,50 +23,54 @@ typedef struct {
   map<int,char>* mp;
 } Global;
 
+template<class T>
 class myList {
   public:
-    int value;
+    T value;
     myList* next;
 
-    myList(int val){
+    myList(T val){
       value = val;
       next = NULL;
     }
 
-    void deleteL(myList* prev){
+    myList* deleteL(myList* prev){
       prev->next = this->next;
       free(this);
+      return prev->next;
     }
 };
 
+template<class T>
 class myListHead {
   public:
-    myList* first;
-    myList* last;
+    myList<T>* first;
+    myList<T>* last;
+
+    myListHead(T value){
+      first = new myList<T>(value);
+      last = first;
+    }
 
     myListHead(){
       first = NULL; last = NULL;
     }
 
-    myListHead(int value){
-      myList mL = myList(value);
-      first = new myList(value);
-      last = first;
-    }
-
-    void addToList(int value){
+    void addToList(T val){
       if (first == NULL){
-        myListHead(value);
+        first = new myList<T>(val);
+        last = first;
       } else {
-        last->next = new myList(value);
+        last->next = new myList<T>(val);
         last = last->next;
       }
     }
 
-    int pop(char* errorHandler){
+
+    T pop(char* errorHandler){
       *errorHandler = 0;
       if (first!=NULL){
-        int out =  first->value;
+        T out =  first->value;
         first = first->next;
         return out;
       } else {
@@ -75,56 +79,22 @@ class myListHead {
       }
     }
 
-    void print(){
+    /*void print(){
       myList* nextL = first;
       while (nextL!=NULL){
         printf("%d->",nextL->value);
         nextL = nextL->next;
       } printf("\n");
-    }
+    }*/
 };
 
 
-vetor* initVetor(){
-   vetor *vet = (vetor*) malloc(sizeof(vetor));
-   vet->arr = (int*) malloc(sizeof(int)*50);
-   vet->size = 50;
-   vet->currSize = 0;
-   return vet;
-}
-
-/*Global stuff*/
-Global* initGlobalEx1(){
-  Global* global = (Global*) malloc(sizeof(Global));
-  global->vet1 = initVetor();
-  global->vet2 = NULL;
-  global->mp = new map<int,char>;
-  //global->mp = (map<int,char>*) malloc(sizeof(map<int,char>));
-  return global;
-}
-
 
 int main(){
-  char errorHandler;
-  myListHead mLH = myListHead(3);
-  mLH.addToList(4);
-  mLH.addToList(6);
-  mLH.addToList(7);
-  mLH.addToList(8);
-  mLH.addToList(5);
-  mLH.print();
-  int a = mLH.pop(&errorHandler);
-  if (errorHandler){
-    printf("morreu\n");
-  }
-  mLH.print();
-  a = mLH.pop(&errorHandler);
-  if (errorHandler){
-    printf("morreu\n");
-  }
-  mLH.print();
-  
-
+  element e1;
+  e1.step=0;e1.reps=0;e1.value=2;
+  myListHead<element>* mLH1 = new myListHead<element>(e1);
+  myListHead<int>* mLH2 = new myListHead<int>(3);
 
 
   return 0;
