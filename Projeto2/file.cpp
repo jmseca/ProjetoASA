@@ -11,22 +11,25 @@ using namespace std;
 tenha memorylimit, diminuia para metade do espaco ocupado pelos ponteiros, mas preciava de saber o indice 
 de um vertice sempre que o analisava)*/
 
-enum Color {
-  notVisited,
-  visitedNow,
-  visitedBefore,
-};
+/* No caso de grafos com muitos vertices isolados, o meu algoritmo nao e eficiente, uma vez que guarda os 
+vertices todos, e nao precisava. Por isso se tiver TLE, esta pode ser uma hipotese*/
+
+
 
 class Vertice {
   public:
     int value;
-    Color vColor;
+    int color;
+    /* color
+    DFS: 0->notVisited, 1->visitedNow, 2->visitedBefore
+    BFS: d[v]
+    */
     vector<Vertice* >* son;
 
   Vertice(int value){
     this->value = value;
     this->son = NULL;
-    this->vColor = notVisited;
+    this->color = 0;
   }
 
   char addSon(Vertice* newSon){
@@ -38,6 +41,23 @@ class Vertice {
     this->son->push_back(newSon);  
     return 0;
   }
+
+  char dfsIsVisitedNow(){
+    return this->color == 1;
+  }
+
+  void dfsSetVisitedNow(){
+    this->color = 1;
+  }
+
+  char dfsIsVisitedBefore(){
+    return this->color == 2;
+  } 
+
+  void dfsSetVisitedBefore(){
+    this->color = 2;
+  }
+
 };
 
 char visit(Vertice* vert);
@@ -72,8 +92,8 @@ class Graph {
     }
   }
 
-  Color getVerticeColor(int vertIndex){
-    return this->vertices[vertIndex].vColor;
+  char dfsVerticeIsVisitedBefore(int vertIndex){
+    return this->vertices[vertIndex].color == 2;
   }
 
   char visitVertice(int vertIndex){
@@ -110,17 +130,17 @@ Graph* storeUserInput(int* verticeNum, char* errorHandler){
 
 
 char visit(Vertice* vert){ //TODO ponderar usar colocar isto na class dos vertices e ver se nao tenho MLE
-  if (vert->vColor == visitedNow){
+  if (vert->dfsIsVisitedNow()){
     return -1;
   }
-  if (vert->vColor != visitedBefore){ 
-    vert->vColor = visitedNow;
+  if ( !(vert->dfsIsVisitedBefore()) ){ 
+    vert->dfsSetVisitedNow();
     if (vert->son != NULL){
       for (vector<Vertice*>::iterator it = vert->son->begin(); it !=vert->son->end(); ++it){
         if (visit(*it)==-1) { return -1; }
       }
     }
-    vert->vColor = visitedBefore;
+    vert->dfsSetVisitedBefore();
   }
   return 0;
 }
@@ -128,7 +148,7 @@ char visit(Vertice* vert){ //TODO ponderar usar colocar isto na class dos vertic
 
 char checkValidGraph(Graph* graph){
   for (int i=0;i<(graph->verticesNum);i++){
-    if (( (graph->getVerticeColor(i)) != visitedBefore) && (graph->visitVertice(i)==-1))
+    if (( !(graph->dfsVerticeIsVisitedBefore(i)) && (graph->visitVertice(i)==-1)))
       return -1;
   }
   return 0;
