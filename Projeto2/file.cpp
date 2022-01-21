@@ -18,67 +18,69 @@ enum color {
 };
 
 class vertice {
-    public:
-        int value;
-        color vColor;
-        char visitedTimes;
-        vector<vertice* >* son;
+  public:
+    int value;
+    color vColor;
+    vector<vertice* >* son;
 
-    vertice(int value){
-        this->value = value;
-        this->son = NULL;
-        this->vColor = notVisited;
-        this->visitedTimes = 0;
-    }
+  vertice(int value){
+    this->value = value;
+    this->son = NULL;
+    this->vColor = notVisited;
+  }
 
-    void addSon(vertice* newSon){
-        if (this->son == NULL){
-            this->son = new vector<vertice*>;
-        this->son->push_back(newSon); 
-        } 
+  char addSon(vertice* newSon){
+    if (this->son == NULL){
+        this->son = new vector<vertice*>;
+    } else if (this->son->size() == 2){
+      return -1;
     }
+    this->son->push_back(newSon);  
+    return 0;
+  }
 };
 
 
 
 
-vertice* getVerticesAndEdges(vertice* arr, int edgesNum){
+vertice* getVerticesAndEdges(vertice* arr, int edgesNum, char* errorHandler){
   int v1,v2;
   for (int i=0; i<edgesNum; i++){
-    scanf("%d%d\n",&v1,&v2);
+    if (scanf("%d%d",&v1,&v2)==-1)
+      return NULL;
     v1--; v2--;
-    if (arr[v1].value==(-1)) { arr[v1].value = (v1+1); }
-    if (arr[v2].value==(-1)) { arr[v2].value = (v2+1); }
-    arr[v2].addSon(&(arr[v1]));
+    if (arr[v2].addSon(&(arr[v1])) == -1){
+      *errorHandler=1;
+      return NULL;
+    }
   }
   return arr;
 }
 
-vertice* storeUserInput(int* verticeNum){
-    int v1Val, v2Val;
-    int edgesNum;
-    vertice* arr;
-    scanf("%d%d\n",&v1Val,&v2Val);
-    scanf("%d%d\n",verticeNum,&edgesNum);
-    arr = (vertice*) malloc(sizeof(vertice)*(*verticeNum));
-    for (int i=0;i<(*verticeNum);i++){
-      arr[i].value = -1;
-    }
-    return getVerticesAndEdges(arr,edgesNum);
+vertice* storeUserInput(int* verticeNum, char* errorHandler){
+  *errorHandler = 0;
+  int edgesNum;
+  vertice* arr;
+  if (scanf("%d%d",verticeNum,&edgesNum)==-1)
+    return NULL;
+  arr = (vertice*) malloc(sizeof(vertice)*(*verticeNum));
+  for (int i=0;i<(*verticeNum);i++){
+    arr[i] = vertice((i+1));
+  }
+  return getVerticesAndEdges(arr,edgesNum, errorHandler);
 }
 
 
 char visit(vertice* vert){
-  if (vert->visitedTimes == 2 || vert->vColor == visitedNow){
+  if (vert->vColor == visitedNow){
     return -1;
   }
-  vert->visitedTimes++;
   if (vert->vColor != visitedBefore){ 
     vert->vColor = visitedNow;
-    vector<vertice*>* sons = vert->son;
-    int ind = 0;
-    for (vector<vertice*>::iterator it = sons->begin(); it !=sons->end(); ++it,++ind){
-      visit(sons->at(ind));
+    if (vert->son != NULL){
+      for (vector<vertice*>::iterator it = vert->son->begin(); it !=vert->son->end(); ++it){
+        if (visit(*it)==-1) { return -1; }
+      }
     }
     vert->vColor = visitedBefore;
   }
@@ -90,11 +92,8 @@ char checkValidGraph(vertice* graph, int verticeNum){
   vertice* v;
   for (int i=0;i<verticeNum;i++){
     v = &graph[i];
-    if (v->vColor != visitedBefore){
-      if (visit(&graph[i])==-1){
-        return -1;
-      }
-    }
+    if ((v->vColor != visitedBefore) && (visit(&graph[i])==-1))
+      return -1;
   }
   return 0;
 }
@@ -108,7 +107,17 @@ char checkValidGraph(vertice* graph, int verticeNum){
 int main(){
   // StoreUserInput
   int numVertices;
-  vertice* graph = storeUserInput(&numVertices);
+  char errorHandler;
+  int valueV1, valueV2;
+  if (scanf("%d%d",&valueV1,&valueV2)==-1)
+    return -1;
+  vertice* graph = storeUserInput(&numVertices,&errorHandler);
+  if (errorHandler){
+    printf("0\n");
+  }
+  if (graph == NULL){
+    return -1;
+  }
   //TODO: passar isto para uma estrutura com vertice* + int numVertices
   // CheckValidTree
   if (checkValidGraph(graph,numVertices)==-1){
