@@ -1,7 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
-#include <list>
+#include <queue>
+#include <set>
 
 using namespace std;
 
@@ -19,17 +20,19 @@ vertices todos, e nao precisava. Por isso se tiver TLE, esta pode ser uma hipote
 class Vertice {
   public:
     int value;
-    int color;
     /* color
     DFS: 0->notVisited, 1->visitedNow, 2->visitedBefore
-    BFS: d[v]
+    BFS1: d[v]
     */
+    int color;
+    int bfs2Dist;
     vector<Vertice* >* son;
 
   Vertice(int value){
     this->value = value;
     this->son = NULL;
     this->color = 0;
+    this->bfs2Dist = -1;
   }
 
   char addSon(Vertice* newSon){
@@ -58,6 +61,22 @@ class Vertice {
     this->color = 2;
   }
 
+  void bfs1SetDistance(int newDistance){
+    this->color = newDistance;
+  }
+
+  int bfs1GetDistance(){
+    return this->color;
+  }
+
+  void bfs2SetDistance(int newDistance){
+    this->bfs2Dist = newDistance;
+  }
+
+  int bfs2GetDistance(){
+    return this->bfs2Dist;
+  }
+
 };
 
 char visit(Vertice* vert);
@@ -74,6 +93,9 @@ class Graph {
     this->vertices = NULL;
   }
 
+  Vertice* getVertice(int vertIndex){
+    return &(this->vertices[vertIndex]);
+  }
 
   char getEdgeVertNumFormInput(){
     if (scanf("%d%d",&(this->verticesNum),&(this->edgedNum))==-1)
@@ -99,7 +121,19 @@ class Graph {
   char visitVertice(int vertIndex){
     return visit(&(this->vertices[vertIndex]));
   }
+
+  void bfsInit(){
+    for (int i=0;i<this->verticesNum;i++){
+      this->vertices[i].color = -1;
+    }
+  }
 };
+
+typedef struct {
+  Vertice* vert;
+  int distance;
+} VerticeWithDistance;
+
 
 
 
@@ -155,9 +189,82 @@ char checkValidGraph(Graph* graph){
 }
 
 
+void bfsVertice1(Graph* graph, int vertIndex){
+  Vertice* vert = graph->getVertice(vertIndex);
+  queue<Vertice* > vertQueue;
+  int distance;
+  vertQueue.push(vert);
+  vert->bfs1SetDistance(0);
+  while (!vertQueue.empty()){
+    vert = vertQueue.front();
+    vertQueue.pop();
+    distance = (vert->bfs1GetDistance() + 1);
+    if (vert->son != NULL){
+      for (vector<Vertice*>::iterator it = vert->son->begin(); it !=vert->son->end(); ++it){
+        if ((*it)->bfs1GetDistance() < 0){
+          (*it)->bfs1SetDistance(distance);
+          vertQueue.push(*it);
+        }
+      }
+    }
+  }
+
+}
+
+void bfsVertice2(Graph* graph, int vertIndex, set<int>* closestAncestors){
+  Vertice* vert = graph->getVertice(vertIndex);
+  queue<Vertice* > vertQueue;
+  int distance, vertMinDistance, minDistance = 1;
+  vertQueue.push(vert);
+  vert->bfs2SetDistance(0);
+  while (!vertQueue.empty()){
+    vert = vertQueue.front();
+    vertQueue.pop();
+    distance = (vert->bfs2GetDistance() + 1);
+    if (vert->son != NULL){
+      for (vector<Vertice*>::iterator it = vert->son->begin(); it !=vert->son->end(); ++it){
+        if ((*it)->bfs2GetDistance() < 0){
+          (*it)->bfs2SetDistance(distance);
+          vertQueue.push(*it);
+        }
+        if ((*it)->bfs1GetDistance()>0){
+          vertMinDistance = (*it)->bfs2GetDistance() > (*it)->bfs1GetDistance() 
+            ? (*it)->bfs1GetDistance() 
+            : (*it)->bfs2GetDistance();
+
+          if (vertMinDistance < minDistance){
+            minDistance = vertMinDistance;
+            closestAncestors->clear();
+            closestAncestors->insert((*it)->value);
+          } else if (vertMinDistance == minDistance){
+            closestAncestors->insert((*it)->value);
+          }
+        }
+      }
+    }
+  }
+
+}
+
+
+void printClosestAncestors(set<int>* closestAncestors){
+  if (closestAncestors->empty()){
+    printf("-\n");
+  } else {
+    for (set<int>::iterator itr = closestAncestors->begin(); itr != closestAncestors->end(); itr++) {
+      printf("%d ",*itr);
+    }
+    printf("\n");
+  }
+}
 
 
 void computeAndShowClosestAncestors(Graph* graph, int valueV1, int valueV2){
+  set<int>* closestAncestores = new set<int>;
+  graph->bfsInit();
+  bfsVertice1(graph, --valueV1);
+  bfsVertice2(graph, --valueV2, closestAncestores);
+  printClosestAncestors(closestAncestores);
 
 }
 
@@ -184,5 +291,6 @@ int main(){
   } else {
     computeAndShowClosestAncestors(graph,valueV1,valueV2);
   } 
+
   return 0;
 }
