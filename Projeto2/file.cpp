@@ -26,13 +26,16 @@ class Vertice {
     */
     int color;
     int bfs2Dist;
+    char commonAncestor;
     vector<Vertice* >* son;
 
   Vertice(int value){
     this->value = value;
     this->son = NULL;
     this->color = 0;
+    this->commonAncestor = 0;
     this->bfs2Dist = -1;
+
   }
 
   char addSon(Vertice* newSon){
@@ -75,6 +78,10 @@ class Vertice {
 
   int bfs2GetDistance(){
     return this->bfs2Dist;
+  }
+
+  void setAsCommonAncestor(){
+    this->commonAncestor = 1;
   }
 
 };
@@ -214,36 +221,32 @@ void bfsVertice1(Graph* graph, int vertIndex){
 void bfsVertice2(Graph* graph, int vertIndex, set<int>* closestAncestors){
   Vertice* vert = graph->getVertice(vertIndex);
   queue<Vertice* > vertQueue;
-  int distance, vertMinDistance, minDistance = 1;
-  vertQueue.push(vert);
-  vert->bfs2SetDistance(0);
-  while (!vertQueue.empty()){
-    vert = vertQueue.front();
-    vertQueue.pop();
-    distance = (vert->bfs2GetDistance() + 1);
-    if (vert->son != NULL){
-      for (vector<Vertice*>::iterator it = vert->son->begin(); it !=vert->son->end(); ++it){
-        if ((*it)->bfs2GetDistance() < 0){
-          (*it)->bfs2SetDistance(distance);
-          vertQueue.push(*it);
-        }
-        if ((*it)->bfs1GetDistance()>0){
-          vertMinDistance = (*it)->bfs2GetDistance() > (*it)->bfs1GetDistance() 
-            ? (*it)->bfs1GetDistance() 
-            : (*it)->bfs2GetDistance();
-
-          if (vertMinDistance < minDistance){
-            minDistance = vertMinDistance;
-            closestAncestors->clear();
-            closestAncestors->insert((*it)->value);
-          } else if (vertMinDistance == minDistance){
-            closestAncestors->insert((*it)->value);
+  int distance;
+  if (vert->bfs1GetDistance()>=0){
+    closestAncestors->insert(vert->value);
+  } else {
+    vertQueue.push(vert);
+    vert->bfs2SetDistance(0);
+    while (!vertQueue.empty()){
+      vert = vertQueue.front();
+      vertQueue.pop();
+      distance = (vert->bfs2GetDistance() + 1);
+      if (vert->son != NULL){
+        for (vector<Vertice*>::iterator it = vert->son->begin(); it !=vert->son->end(); ++it){
+          //printf("Checking Vertice: %d\n Has BFS1:%d\n\n",(*it)->value,(*it)->bfs1GetDistance());
+          if ((*it)->bfs1GetDistance()>=0){
+            if (!vert->commonAncestor){
+              closestAncestors->insert((*it)->value);
+              (*it)->setAsCommonAncestor();
+            }
+          } else {
+            (*it)->bfs2SetDistance(distance);
+            vertQueue.push(*it);
           }
         }
       }
     }
   }
-
 }
 
 
