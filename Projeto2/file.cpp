@@ -82,6 +82,16 @@ class Vertice {
 
   void setAsCommonAncestor(){
     this->commonAncestor = 1;
+    //TODO: se tiver MLE, ponderar stack aqui tambem
+    if (this->son != NULL){
+      for (vector<Vertice*>::iterator it = this->son->begin(); it !=this->son->end(); ++it){
+        (*it)->setAsCommonAncestor();
+      }
+    }
+  }
+
+  char isCommonAncestor(){
+    return this->commonAncestor;
   }
 
 };
@@ -234,14 +244,16 @@ void bfsVertice2(Graph* graph, int vertIndex, set<int>* closestAncestors){
       if (vert->son != NULL){
         for (vector<Vertice*>::iterator it = vert->son->begin(); it !=vert->son->end(); ++it){
           //printf("Checking Vertice: %d\n Has BFS1:%d\n\n",(*it)->value,(*it)->bfs1GetDistance());
-          if ((*it)->bfs1GetDistance()>=0){
-            if (!vert->commonAncestor){
-              closestAncestors->insert((*it)->value);
-              (*it)->setAsCommonAncestor();
+          if (!(*it)->isCommonAncestor()) {
+            if ((*it)->bfs1GetDistance()>=0){
+              if (!vert->commonAncestor){
+                closestAncestors->insert((*it)->value);
+                (*it)->setAsCommonAncestor();
+              }
+            } else {
+              (*it)->bfs2SetDistance(distance);
+              vertQueue.push(*it);
             }
-          } else {
-            (*it)->bfs2SetDistance(distance);
-            vertQueue.push(*it);
           }
         }
       }
