@@ -26,14 +26,14 @@ class Vertice {
     */
     int color;
     int bfs2Dist;
-    char commonAncestor;
+    char farCommonAncestor;
     vector<Vertice* >* son;
 
   Vertice(int value){
     this->value = value;
     this->son = NULL;
     this->color = 0;
-    this->commonAncestor = 0;
+    this->farCommonAncestor = 0;
     this->bfs2Dist = -1;
 
   }
@@ -80,22 +80,22 @@ class Vertice {
     return this->bfs2Dist;
   }
 
-  void setSonsAsCommonAncestors(){
+  void setSonsAsFarCommonAncestors(){
     if (this->son != NULL){
       for (vector<Vertice*>::iterator it = this->son->begin(); it !=this->son->end(); ++it){
-        (*it)->setAsCommonAncestor();
+        (*it)->setAsFarCommonAncestor();
       }
     }
   }
 
-  void setAsCommonAncestor(){
-    this->commonAncestor = 1;
+  void setAsFarCommonAncestor(){
+    this->farCommonAncestor = 1;
     //TODO: se tiver MLE, ponderar stack aqui tambem
-    this->setSonsAsCommonAncestors();
+    this->setSonsAsFarCommonAncestors();
   }
 
-  char isCommonAncestor(){
-    return this->commonAncestor;
+  char isFarCommonAncestor(){
+    return this->farCommonAncestor;
   }
 
 };
@@ -149,8 +149,8 @@ class Graph {
     }
   }
 
-  char verticeIsCommonAncestor(int vertIndex){
-    return this->vertices[vertIndex].commonAncestor;
+  char verticeIsFarCommonAncestor(int vertIndex){
+    return this->vertices[vertIndex].farCommonAncestor;
   }
 
 };
@@ -253,11 +253,11 @@ void bfsVertice2(Graph* graph, int vertIndex, set<int>* closestAncestors){
       if (vert->son != NULL){
         for (vector<Vertice*>::iterator it = vert->son->begin(); it !=vert->son->end(); ++it){
           //printf("Checking Vertice: %d\n Has BFS1:%d\n\n",(*it)->value,(*it)->bfs1GetDistance());
-          if (!(*it)->isCommonAncestor()) {
+          if (!(*it)->isFarCommonAncestor()) {
             if ((*it)->bfs1GetDistance()>=0){
-              if (!vert->commonAncestor){
+              if (!vert->farCommonAncestor){
                 closestAncestors->insert((*it)->value);
-                (*it)->setSonsAsCommonAncestors();
+                (*it)->setSonsAsFarCommonAncestors();
               }
             } else {
               (*it)->bfs2SetDistance(distance);
@@ -276,7 +276,7 @@ void printClosestAncestors(Graph* graph, set<int>* closestAncestors){
     printf("-\n");
   } else {
     for (set<int>::iterator itr = closestAncestors->begin(); itr != closestAncestors->end(); itr++) {
-      if (!graph->verticeIsCommonAncestor(((*itr)-1)) ){
+      if (!graph->verticeIsFarCommonAncestor(((*itr)-1)) ){
         printf("%d ",*itr);
       }
     }
