@@ -15,7 +15,7 @@ de um vertice sempre que o analisava)*/
 /* No caso de grafos com muitos vertices isolados, o meu algoritmo nao e eficiente, uma vez que guarda os 
 vertices todos, e nao precisava. Por isso se tiver TLE, esta pode ser uma hipotese*/
 
-
+//TODO mudar o nome das vars de common ancestor para farCommonAncestor
 
 class Vertice {
   public:
@@ -80,14 +80,18 @@ class Vertice {
     return this->bfs2Dist;
   }
 
-  void setAsCommonAncestor(){
-    this->commonAncestor = 1;
-    //TODO: se tiver MLE, ponderar stack aqui tambem
+  void setSonsAsCommonAncestors(){
     if (this->son != NULL){
       for (vector<Vertice*>::iterator it = this->son->begin(); it !=this->son->end(); ++it){
         (*it)->setAsCommonAncestor();
       }
     }
+  }
+
+  void setAsCommonAncestor(){
+    this->commonAncestor = 1;
+    //TODO: se tiver MLE, ponderar stack aqui tambem
+    this->setSonsAsCommonAncestors();
   }
 
   char isCommonAncestor(){
@@ -144,6 +148,11 @@ class Graph {
       this->vertices[i].color = -1;
     }
   }
+
+  char verticeIsCommonAncestor(int vertIndex){
+    return this->vertices[vertIndex].commonAncestor;
+  }
+
 };
 
 typedef struct {
@@ -248,7 +257,7 @@ void bfsVertice2(Graph* graph, int vertIndex, set<int>* closestAncestors){
             if ((*it)->bfs1GetDistance()>=0){
               if (!vert->commonAncestor){
                 closestAncestors->insert((*it)->value);
-                (*it)->setAsCommonAncestor();
+                (*it)->setSonsAsCommonAncestors();
               }
             } else {
               (*it)->bfs2SetDistance(distance);
@@ -262,12 +271,14 @@ void bfsVertice2(Graph* graph, int vertIndex, set<int>* closestAncestors){
 }
 
 
-void printClosestAncestors(set<int>* closestAncestors){
+void printClosestAncestors(Graph* graph, set<int>* closestAncestors){
   if (closestAncestors->empty()){
     printf("-\n");
   } else {
     for (set<int>::iterator itr = closestAncestors->begin(); itr != closestAncestors->end(); itr++) {
-      printf("%d ",*itr);
+      if (!graph->verticeIsCommonAncestor(((*itr)-1)) ){
+        printf("%d ",*itr);
+      }
     }
     printf("\n");
   }
@@ -279,7 +290,7 @@ void computeAndShowClosestAncestors(Graph* graph, int valueV1, int valueV2){
   graph->bfsInit();
   bfsVertice1(graph, --valueV1);
   bfsVertice2(graph, --valueV2, closestAncestores);
-  printClosestAncestors(closestAncestores);
+  printClosestAncestors(graph, closestAncestores);
 
 }
 
