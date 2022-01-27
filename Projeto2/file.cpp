@@ -7,16 +7,6 @@
 using namespace std;
 
 
-/* e se em vez de usar ponteiros nos vertices ligados, e se eu
- colocasse int's que corresponderiam ao indice na motherArray? (seria uma solucao, caso
-tenha memorylimit, diminuia para metade do espaco ocupado pelos ponteiros, mas preciava de saber o indice 
-de um vertice sempre que o analisava)*/
-
-/* No caso de grafos com muitos vertices isolados, o meu algoritmo nao e eficiente, uma vez que guarda os 
-vertices todos, e nao precisava. Por isso se tiver TLE, esta pode ser uma hipotese*/
-
-//TODO mudar o nome das vars de common ancestor para farCommonAncestor
-
 class Vertice {
   public:
     int value;
@@ -89,9 +79,10 @@ class Vertice {
   }
 
   void setAsFarCommonAncestor(){
-    this->farCommonAncestor = 1;
-    //TODO: se tiver MLE, ponderar stack aqui tambem
-    this->setSonsAsFarCommonAncestors();
+    if (!this->farCommonAncestor){
+      this->farCommonAncestor = 1;
+      this->setSonsAsFarCommonAncestors();
+    }
   }
 
   char isFarCommonAncestor(){
@@ -189,7 +180,7 @@ Graph* storeUserInput(int* verticeNum, char* errorHandler){
 }
 
 
-char visit(Vertice* vert){ //TODO ponderar usar colocar isto na class dos vertices e ver se nao tenho MLE
+char visit(Vertice* vert){ 
   if (vert->dfsIsVisitedNow()){
     return -1;
   }
@@ -252,7 +243,6 @@ void bfsVertice2(Graph* graph, int vertIndex, set<int>* closestAncestors){
       distance = (vert->bfs2GetDistance() + 1);
       if (vert->son != NULL){
         for (vector<Vertice*>::iterator it = vert->son->begin(); it !=vert->son->end(); ++it){
-          //printf("Checking Vertice: %d\n Has BFS1:%d\n\n",(*it)->value,(*it)->bfs1GetDistance());
           if (!(*it)->isFarCommonAncestor()) {
             if ((*it)->bfs1GetDistance()>=0){
               if (!vert->farCommonAncestor){
@@ -269,7 +259,6 @@ void bfsVertice2(Graph* graph, int vertIndex, set<int>* closestAncestors){
     }
   }
 }
-
 
 void printClosestAncestors(Graph* graph, set<int>* closestAncestors){
   if (closestAncestors->empty()){
@@ -310,7 +299,6 @@ int main(){
   if (graph == NULL){
     return -1;
   }
-  //TODO: passar isto para uma estrutura com vertice* + int numVertices
   // CheckValidTree
   if (checkValidGraph(graph)==-1){
     printf("0\n");
