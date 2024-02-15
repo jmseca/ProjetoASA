@@ -1,2 +1,2 @@
 # ProjetoASA
-Projeto para a cadeira de Análise e Síntese de Algoritmos
+Project for the course Analysis and Synthesis of Algorithms
